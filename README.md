@@ -69,6 +69,38 @@ mininet-wifi> sta1 iw dev sta1-wlan0 link      # Wi-Fi association
 mininet-wifi> sta1 tc qdisc show
 ```
 
+## Parameter sweeps and graphs
+
+`sweep.py` runs the experiment repeatedly with different settings, and `plot.py` turns the results into graphs.
+
+```bash
+sudo apt install -y python3-matplotlib    # once
+sudo python3 sweep.py                     # about 10 min (add --repeats 3 for averages)
+python3 plot.py
+```
+
+The sweep runs two sets of tests:
+
+- **Background load:** 0, 20, 40, 60 and 80 % of each path's capacity, with the assignment's loss values.
+- **Wi-Fi loss:** 0, 0.5, 1 and 2 %, with background fixed at 60 %.
+
+Output in `sweep_results/`:
+
+- `all_runs.csv` holds every measurement.
+- `1_tcp_vs_background.png` shows TCP throughput against background load.
+- `2_rtt_vs_background.png` shows RTT under load against background load.
+- `3_wifi_tcp_vs_loss.png` shows Wi-Fi TCP throughput against loss, compared with the Mathis model.
+
+A single run can also be changed by hand:
+
+```bash
+sudo python3 wifi_5g_topology.py --bg-share 0.4 --wifi-loss 0.5 --g5-loss 0.1
+```
+
+## Note on Wi-Fi shaping
+
+Mininet-WiFi puts its own rate limit on the radio interface, based on mode and distance (about 10 Mbit/s in mode g), and that overrides `TCLink`. The script therefore applies the Wi-Fi path's rate, delay and loss with `tc netem` directly on `sta1-wlan0` and `srv-wifi` after the network starts.
+
 ## Notes
 
 - A VM with at least 2 vCPUs is recommended. 420 Mbit/s of UDP is CPU-heavy, and if the VM is slow the 5G background may not reach its target. Check `bg_achieved_mbps` in `summary.csv`.
