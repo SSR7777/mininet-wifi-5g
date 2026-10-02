@@ -55,7 +55,7 @@ def build_topology():
     info("*** Creating nodes\n")
     sta1 = net.addStation("sta1", ip="10.0.1.1/24", position="10,10,0")
     srv = net.addHost("srv", ip="10.0.1.100/24")
-    ap1 = net.addAccessPoint("ap1", ssid="wifi-path", mode="n", channel="1",
+    ap1 = net.addAccessPoint("ap1", ssid="wifi-path", mode="g", channel="1",
                              position="15,10,0", failMode="standalone")
     s5g = net.addSwitch("s5g", failMode="standalone")
 
@@ -81,15 +81,44 @@ def build_topology():
 
     info("*** Starting network\n")
     net.build()
-    ap1.start([])
-    s5g.start([])
+    net.start()
+    time.sleep(5)
+    # Mininet-WiFi puts its own (mode/distance based) rate limit on the radio
+    # and overrides the TCLink shaping, so apply the Wi-Fi path limits here.
+    sta1.cmd(f"tc qdisc replace dev sta1-wlan0 root netem rate {w['bw']}mbit "
+             f"delay {w['delay']} loss {w['loss']}% limit 10000")
+    ap1.cmd("tc qdisc del dev ap1-wlan1 root")
+    srv.cmd(f"tc qdisc replace dev srv-wifi root netem rate {w['bw']}mbit "
+            f"delay {w['delay']} limit 10000")
 
     # Addresses (one subnet per path)
     sta1.setIP("10.0.1.1/24", intf="sta1-wlan0")
     sta1.setIP("10.0.2.1/24", intf="sta1-5g")
     srv.setIP("10.0.1.100/24", intf="srv-wifi")
     srv.setIP("10.0.2.100/24", intf="srv-5g")
+
+    wait_for_wifi(sta1, ap1)
     return net
+
+
+def wait_for_wifi(sta1, ap1, timeout=20):
+    """Make sure sta1 is associated with ap1 before measuring."""
+    info("*** Waiting for Wi-Fi association\n")
+    out = ""
+    for i in range(timeout * 2):
+        out = sta1.cmd("iw dev sta1-wlan0 link")
+        if "Connected" in out:
+            break
+        if i == 6:  # nudge it once if it has not associated after ~3 s
+            sta1.cmd("iw dev sta1-wlan0 connect wifi-path")
+        time.sleep(0.5)
+    info(out + "\n")
+    if "Connected" not in out:
+        info("*** WARNING: sta1 is NOT associated with ap1\n")
+        info(ap1.cmd("ovs-vsctl show") + "\n")
+        info(sta1.cmd("iw dev sta1-wlan0 scan | grep -E 'SSID|freq'") + "\n")
+    # Warm up ARP on the Wi-Fi path
+    sta1.cmd("ping -c 3 -W 1 10.0.1.100")
 
 
 def parse_ping(out):
@@ -122,6 +151,8 @@ def run_experiment(net, duration, outdir, mptcp):
             fh.write(f"==== {node.name} ====\n{node.cmd('tc qdisc show')}\n")
 
     info("*** Idle RTT check (no background traffic)\n")
+    for p in PATHS.values():          # warm-up pings (ARP etc.), not counted
+        sta1.cmd(f"ping -c 3 -i 0.2 {p['server_ip']}")
     for name, p in PATHS.items():
         out = sta1.cmd(f"ping -c 10 -i 0.2 {p['server_ip']}")
         results[name] = {"idle": parse_ping(out)}
@@ -138,6 +169,8 @@ def run_experiment(net, duration, outdir, mptcp):
     for name, p in PATHS.items():
         rate = int(p["bw"] * BG_SHARE)
         info(f"    {name}: {rate} Mbit/s\n")
+        if rate <= 0:                 # iperf3 -b 0 would mean "unlimited"
+            continue
         sta1.cmd(f"iperf3 -c {p['server_ip']} -p {p['bg_port']} -u -b {rate}M "
                  f"-t {duration + 6} -J > {outdir}/bg_{name}.json 2>&1 &")
     time.sleep(3)
@@ -222,13 +255,24 @@ def run_mptcp(sta1, srv, duration, outdir):
 
 
 def main():
+    global BG_SHARE
     ap = argparse.ArgumentParser(description="Wi-Fi + 5G dual-path emulation")
     ap.add_argument("--duration", type=int, default=30, help="test length in seconds")
     ap.add_argument("--out", default="results", help="output directory")
     ap.add_argument("--cli", action="store_true", help="open CLI after the test")
     ap.add_argument("--no-test", action="store_true", help="only build topology + CLI")
     ap.add_argument("--mptcp", action="store_true", help="also run an MPTCP test")
+    ap.add_argument("--bg-share", type=float, default=BG_SHARE,
+                    help="background load as a fraction of capacity (default 0.6)")
+    ap.add_argument("--wifi-loss", type=float, default=PATHS["wifi"]["loss"],
+                    help="Wi-Fi loss in %% (default 1)")
+    ap.add_argument("--g5-loss", type=float, default=PATHS["5g"]["loss"],
+                    help="5G loss in %% (default 0.1)")
     args = ap.parse_args()
+
+    BG_SHARE = args.bg_share
+    PATHS["wifi"]["loss"] = args.wifi_loss
+    PATHS["5g"]["loss"] = args.g5_loss
 
     setLogLevel("info")
     net = build_topology()
