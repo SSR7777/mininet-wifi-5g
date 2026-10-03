@@ -97,6 +97,23 @@ A single run can also be changed by hand:
 sudo python3 wifi_5g_topology.py --bg-share 0.4 --wifi-loss 0.5 --g5-loss 0.1
 ```
 
+## Time-varying background traffic
+
+`vary_traffic.py` makes the background load change over time instead of staying at a constant 60 %. Every few seconds each path jumps to a new random level between 30 and 90 % of capacity, about 60 % on average, and Wi-Fi and 5G change independently. A TCP flow and ping run on both paths throughout, and a live table in the terminal shows each second how TCP and RTT react.
+
+```bash
+sudo python3 vary_traffic.py                                  # 60 s, new level every 5 s
+sudo python3 vary_traffic.py --duration 120 --step 10 --seed 7
+```
+
+Output in `vary_results/`:
+
+- `timeseries.csv` has background load, TCP throughput and RTT for every second.
+- `vary_throughput.png` shows TCP throughput on each path, drawn over the changing background load.
+- `vary_rtt.png` shows RTT over time on both paths.
+
+The same `--seed` always produces the same load pattern, so runs can be compared.
+
 ## Note on Wi-Fi shaping
 
 Mininet-WiFi puts its own rate limit on the radio interface, based on mode and distance (about 10 Mbit/s in mode g), and that overrides `TCLink`. The script therefore applies the Wi-Fi path's rate, delay and loss with `tc netem` directly on `sta1-wlan0` and `srv-wifi` after the network starts.

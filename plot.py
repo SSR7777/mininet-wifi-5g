@@ -108,14 +108,17 @@ def main():
 
     wifi = {"wifi": mean_by(rows, "wifiloss", "wifi_loss_pct", "fg_tcp_mbps").get("wifi", [])}
     rtts = mean_by(rows, "wifiloss", "wifi_loss_pct", "loaded_rtt_ms").get("wifi", [])
-    rtt_s = (sum(r for _, r in rtts) / len(rtts) / 1000) if rtts else 0.02
+    # Use the RTT of the lossy runs only: with 0 % loss TCP fills the queue
+    # (bufferbloat) and that RTT is not representative.
+    lossy = sorted(r for x, r in rtts if x > 0)
+    rtt_s = (lossy[len(lossy) // 2] / 1000) if lossy else 0.02
 
     def mathis(ax):
         # Mathis et al.: throughput ~ (MSS / RTT) * 1.22 / sqrt(p)
         xs = [x / 10 for x in range(3, 21)]           # 0.3 % .. 2 %
         ys = [min(52, 1448 * 8 / rtt_s * 1.22 / math.sqrt(x / 100) / 1e6) for x in xs]
         ax.plot(xs, ys, color=MUTED, linestyle="--", linewidth=1.5,
-                label=f"Mathis model (RTT {rtt_s*1000:.0f} ms)")
+                label=f"Mathis model, TCP Reno (RTT {rtt_s*1000:.0f} ms)")
 
     line_chart(wifi, "3_wifi_tcp_vs_loss.png",
                "Wi-Fi: packet loss limits TCP, not capacity",
