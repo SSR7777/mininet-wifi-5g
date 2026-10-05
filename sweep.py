@@ -19,13 +19,17 @@ import subprocess
 import sys
 import time
 
+import netconfig
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 TOPO = os.path.join(HERE, "wifi_5g_topology.py")
 OUT = os.path.join(HERE, "sweep_results")
 
 BG_VALUES = [0.0, 0.2, 0.4, 0.6, 0.8]
 WIFI_LOSS_VALUES = [0.0, 0.5, 1.0, 2.0]
-DEFAULT = {"bg": 0.6, "wifi_loss": 1.0, "g5_loss": 0.1}
+_CFG = netconfig.load()
+DEFAULT = {"bg": _CFG["bg_share"], "wifi_loss": _CFG["wifi"]["loss"],
+           "g5_loss": _CFG["5g"]["loss"]}
 
 
 def run_one(name, bg, wifi_loss, g5_loss, duration):

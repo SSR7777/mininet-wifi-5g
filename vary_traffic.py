@@ -22,6 +22,7 @@ import time
 
 from mininet.log import setLogLevel, info
 
+import netconfig
 import wifi_5g_topology as topo
 
 PATHS = topo.PATHS
@@ -252,15 +253,25 @@ def plot(csv_path, outdir):
 
 def main():
     ap = argparse.ArgumentParser(description="Wi-Fi + 5G with time-varying background traffic")
-    ap.add_argument("--duration", type=int, default=60)
-    ap.add_argument("--step", type=int, default=5, help="seconds between load changes")
-    ap.add_argument("--min", type=float, default=0.3, help="lowest background share")
-    ap.add_argument("--max", type=float, default=0.9, help="highest background share")
-    ap.add_argument("--seed", type=int, default=1, help="same seed = same pattern")
+    ap.add_argument("--config", default=None, help="config file (default config.ini)")
+    ap.add_argument("--duration", type=int, default=None, help="override duration_s")
+    ap.add_argument("--step", type=int, default=None, help="override step_s")
+    ap.add_argument("--min", type=float, default=None, help="override min_share")
+    ap.add_argument("--max", type=float, default=None, help="override max_share")
+    ap.add_argument("--seed", type=int, default=None, help="override seed")
     ap.add_argument("--out", default="vary_results")
     ap.add_argument("--plot-only", action="store_true",
                     help="only redraw graphs from an existing timeseries.csv")
     args = ap.parse_args()
+    cfg = netconfig.load(args.config)
+    topo.apply_config(cfg)
+    for key, ck in (("duration", "duration"), ("step", "bg_step"), ("min", "bg_min"),
+                    ("max", "bg_max"), ("seed", "seed")):
+        if getattr(args, key) is None:
+            setattr(args, key, cfg[ck])
+    print(netconfig.summary(cfg) +
+          f"  Background: varies {args.min*100:g}-{args.max*100:g} % every {args.step} s\n",
+          flush=True)
     setLogLevel("info")
     outdir = os.path.abspath(args.out)
     if args.plot_only:

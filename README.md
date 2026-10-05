@@ -26,6 +26,34 @@ Emulates a client with two access paths, Wi-Fi and 5G, to one server. It uses
 - Each path is in its own subnet. Traffic to `10.0.1.100` goes over Wi-Fi and traffic to `10.0.2.100` goes over 5G.
 - Shaping sits on `TCLink`. Rate and delay apply in both directions, so the base RTT is about 20 ms on Wi-Fi and 30 ms on 5G. Loss applies only in the client→server (data) direction.
 
+## Configuration file (`config.ini`)
+
+All network settings live in **`config.ini`**: capacity, delay, loss, background traffic and test length. To change the experiment, edit this file and run the script again. No code changes are needed.
+
+```ini
+[wifi]
+capacity_mbps = 130
+delay_ms      = 10      # one-way delay
+loss_pct      = 1       # packet loss in %
+
+[5g]
+capacity_mbps = 700
+delay_ms      = 15
+loss_pct      = 0.1
+
+[background]
+share     = 0.60        # constant background (wifi_5g_topology.py, sweep.py)
+min_share = 0.30        # varying background (vary_traffic.py)
+max_share = 0.90
+step_s    = 5           # seconds between changes
+
+[test]
+duration_s = 60
+seed       = 1
+```
+
+Edit it in the VM with `nano config.ini`, then save with Ctrl+O and exit with Ctrl+X. Every script prints the values it loaded when it starts. To keep several setups, copy the file and pass it with `--config`, for example `sudo python3 vary_traffic.py --config high_loss.ini`.
+
 ## Setup (Ubuntu VM)
 
 ```bash
