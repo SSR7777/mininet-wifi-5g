@@ -35,7 +35,9 @@ from mn_wifi.net import Mininet_wifi
 from mn_wifi.node import OVSKernelAP
 from mn_wifi.cli import CLI
 
-# ---- Parameters from the assignment --------------------------------------
+import netconfig
+
+# ---- Parameters: capacity, delay and loss come from config.ini ------------
 PATHS = {
     "wifi": {"bw": 130, "delay": "10ms", "loss": 1.0,
              "client_ip": "10.0.1.1", "server_ip": "10.0.1.100",
@@ -46,6 +48,19 @@ PATHS = {
 }
 BG_SHARE = 0.60          # iPerf background traffic = 60 % of path capacity
 MPTCP_PORT = 5205
+
+
+def apply_config(cfg):
+    """Copy capacity / delay / loss / background share from config.ini."""
+    global BG_SHARE
+    for name in ("wifi", "5g"):
+        PATHS[name]["bw"] = cfg[name]["bw"]
+        PATHS[name]["delay"] = f"{cfg[name]['delay_ms']:g}ms"
+        PATHS[name]["loss"] = cfg[name]["loss"]
+    BG_SHARE = cfg["bg_share"]
+
+
+apply_config(netconfig.load())
 
 
 def build_topology():
@@ -257,22 +272,32 @@ def run_mptcp(sta1, srv, duration, outdir):
 def main():
     global BG_SHARE
     ap = argparse.ArgumentParser(description="Wi-Fi + 5G dual-path emulation")
-    ap.add_argument("--duration", type=int, default=30, help="test length in seconds")
+    ap.add_argument("--config", default=None, help="config file (default config.ini)")
+    ap.add_argument("--duration", type=int, default=None,
+                    help="test length in seconds (default: duration_s in config)")
     ap.add_argument("--out", default="results", help="output directory")
     ap.add_argument("--cli", action="store_true", help="open CLI after the test")
     ap.add_argument("--no-test", action="store_true", help="only build topology + CLI")
     ap.add_argument("--mptcp", action="store_true", help="also run an MPTCP test")
-    ap.add_argument("--bg-share", type=float, default=BG_SHARE,
-                    help="background load as a fraction of capacity (default 0.6)")
-    ap.add_argument("--wifi-loss", type=float, default=PATHS["wifi"]["loss"],
-                    help="Wi-Fi loss in %% (default 1)")
-    ap.add_argument("--g5-loss", type=float, default=PATHS["5g"]["loss"],
-                    help="5G loss in %% (default 0.1)")
+    ap.add_argument("--bg-share", type=float, default=None,
+                    help="override background share from config (e.g. 0.6)")
+    ap.add_argument("--wifi-loss", type=float, default=None,
+                    help="override Wi-Fi loss %% from config")
+    ap.add_argument("--g5-loss", type=float, default=None,
+                    help="override 5G loss %% from config")
     args = ap.parse_args()
 
-    BG_SHARE = args.bg_share
-    PATHS["wifi"]["loss"] = args.wifi_loss
-    PATHS["5g"]["loss"] = args.g5_loss
+    cfg = netconfig.load(args.config)
+    apply_config(cfg)
+    if args.bg_share is not None:
+        BG_SHARE = args.bg_share
+    if args.wifi_loss is not None:
+        PATHS["wifi"]["loss"] = args.wifi_loss
+    if args.g5_loss is not None:
+        PATHS["5g"]["loss"] = args.g5_loss
+    if args.duration is None:
+        args.duration = cfg["duration"]
+    print(netconfig.summary(cfg), flush=True)
 
     setLogLevel("info")
     net = build_topology()
