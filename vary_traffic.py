@@ -30,8 +30,9 @@ NAMES = ("wifi", "5g")
 LABEL = {"wifi": "Wi-Fi", "5g": "5G"}
 
 IPERF_RE = re.compile(r"\]\s+([\d.]+)-([\d.]+)\s+sec\s+[\d.]+\s+\w?Bytes\s+"
-                      r"([\d.]+)\s+([KMG]?)bits/sec")
+                      r"([\d.]+)\s+([KMG]?)bits/sec(?:\s+(\d+))?")
 PING_RE = re.compile(r"^\[([\d.]+)\].*time=([\d.]+) ms")
+SEQ_RE = re.compile(r"icmp_seq=(\d+)")
 UNIT = {"": 1e-6, "K": 1e-3, "M": 1.0, "G": 1e3}
 
 
@@ -45,15 +46,46 @@ def read(path):
 
 
 def iperf_intervals(text):
-    """[(end_second, mbit_s)] for the 1-second interval lines of an iperf3 client."""
+    """[(end_second, mbit_s, retransmits)] for the 1-second interval lines."""
     out = []
     for line in text.splitlines():
         if "sender" in line or "receiver" in line:
             continue
         m = IPERF_RE.search(line)
         if m and float(m.group(2)) - float(m.group(1)) <= 1.5:
-            out.append((float(m.group(2)), float(m.group(3)) * UNIT[m.group(4)]))
+            out.append((float(m.group(2)), float(m.group(3)) * UNIT[m.group(4)],
+                        int(m.group(5)) if m.group(5) else 0))
     return out
+
+
+def ping_loss(text):
+    """(sent, lost, loss_pct) from 'ping -O' output (lost pings print 'no answer')."""
+    seqs, got = set(), 0
+    for line in text.splitlines():
+        m = SEQ_RE.search(line)
+        if not m:
+            continue
+        seqs.add(int(m.group(1)))
+        if "time=" in line:
+            got += 1
+    sent = len(seqs)
+    lost = max(0, sent - got)
+    return sent, lost, (100.0 * lost / sent if sent else 0.0)
+
+
+def udp_loss(paths):
+    """Total (packets, lost, loss_pct) over the background iperf3 UDP JSON files."""
+    import json
+    pk = lo = 0
+    for path in paths:
+        try:
+            with open(path) as fh:
+                s = json.load(fh).get("end", {}).get("sum", {})
+            pk += s.get("packets", 0)
+            lo += s.get("lost_packets", 0)
+        except Exception:
+            pass
+    return pk, lo, (100.0 * lo / pk if pk else 0.0)
 
 
 def ping_samples(text):
@@ -99,11 +131,11 @@ def run(net, duration, step, lo, hi, seed, outdir):
     for n in NAMES:
         p = PATHS[n]
         lines = []
-        for share in sched[n]:
+        for i, share in enumerate(sched[n]):
             rate = max(1, int(p["bw"] * share))
             lines.append(f"date +%s.%N >> {outdir}/bg_{n}_times.txt")
             lines.append(f"iperf3 -c {p['server_ip']} -p {p['bg_port']} -u "
-                         f"-b {rate}M -t {step} > /dev/null 2>&1")
+                         f"-b {rate}M -t {step} -J > {outdir}/bg_{n}_{i:02d}.json 2>&1")
         script = os.path.join(outdir, f"bg_{n}.sh")
         with open(script, "w") as fh:
             fh.write("\n".join(lines) + "\n")
@@ -116,14 +148,17 @@ def run(net, duration, step, lo, hi, seed, outdir):
         sta1.cmd(f"date +%s.%N > {outdir}/fg_{n}_start.txt; "
                  f"iperf3 -c {p['server_ip']} -p {p['fg_port']} -t {duration} "
                  f"-i 1 --forceflush > {outdir}/fg_{n}.log 2>&1 &")
-        sta1.cmd(f"stdbuf -oL ping -D -i 0.5 -w {duration} {p['server_ip']} "
+        sta1.cmd(f"stdbuf -oL ping -D -O -i 0.5 -w {duration} {p['server_ip']} "
                  f"> {outdir}/ping_{n}.log 2>&1 &")
 
     # ---- live view -------------------------------------------------------
     info("\n*** LIVE: background changes every %ds (%.0f-%.0f %% of capacity)\n"
          % (step, lo * 100, hi * 100))
-    hdr = (f"{'t(s)':>4} | {'Wi-Fi bg':>8} {'TCP':>6} {'RTT':>6} {'':12} | "
-           f"{'5G bg':>8} {'TCP':>6} {'RTT':>6} {'':12}")
+    info("    configured loss: Wi-Fi %g %%, 5G %g %%   "
+         "(Retr = TCP packets lost and resent that second, Loss = ping loss so far)\n"
+         % (PATHS["wifi"]["loss"], PATHS["5g"]["loss"]))
+    hdr = (f"{'t(s)':>4} | {'Wi-Fi bg':>8} {'TCP':>6} {'Retr':>4} {'RTT':>7} {'Loss':>6} | "
+           f"{'5G bg':>8} {'TCP':>6} {'Retr':>4} {'RTT':>7} {'Loss':>6}")
     info(hdr + "\n" + "-" * len(hdr) + "\n")
     for sec in range(1, duration + 3):
         time.sleep(max(0, t0 + sec - time.time()))
@@ -133,11 +168,13 @@ def run(net, duration, step, lo, hi, seed, outdir):
             k = min(nsteps - 1, int((sec - 1) // step))
             bg = cap * sched[n][k]
             iv = iperf_intervals(read(f"{outdir}/fg_{n}.log"))
-            tcp = iv[-1][1] if iv else None
-            pg = ping_samples(read(f"{outdir}/ping_{n}.log"))
-            rtt = pg[-1][1] if pg else None
-            cells.append(f"{bg:6.0f}Mb {tcp if tcp is not None else 0:6.1f} "
-                         f"{rtt if rtt is not None else 0:5.1f}ms {bar(tcp, max(cap - bg, 1))}")
+            tcp = iv[-1][1] if iv else 0.0
+            retr = iv[-1][2] if iv else 0
+            ptxt = read(f"{outdir}/ping_{n}.log")
+            pg = ping_samples(ptxt)
+            rtt = pg[-1][1] if pg else 0.0
+            _, _, ploss = ping_loss(ptxt)
+            cells.append(f"{bg:6.0f}Mb {tcp:6.1f} {retr:4d} {rtt:5.1f}ms {ploss:5.1f}%")
         info(f"{sec:4d} | {cells[0]} | {cells[1]}\n")
     time.sleep(3)
     srv.cmd("pkill -9 iperf3")
@@ -151,8 +188,9 @@ def run(net, duration, step, lo, hi, seed, outdir):
         steps = step_times(read(f"{outdir}/bg_{n}_times.txt"))
         start = step_times(read(f"{outdir}/fg_{n}_start.txt"))
         fg0 = start[0] if start else t0
-        tcp = {round(fg0 + end - t0): v for end, v in
-               iperf_intervals(read(f"{outdir}/fg_{n}.log"))}
+        ivs = iperf_intervals(read(f"{outdir}/fg_{n}.log"))
+        tcp = {round(fg0 + end - t0): v for end, v, _ in ivs}
+        retr = {round(fg0 + end - t0): r for end, _, r in ivs}
         rtt = {}
         for ts, r in ping_samples(read(f"{outdir}/ping_{n}.log")):
             rtt.setdefault(int(ts - t0) + 1, []).append(r)
@@ -161,13 +199,14 @@ def run(net, duration, step, lo, hi, seed, outdir):
             k = sum(1 for s in steps if s - t0 <= sec - 0.5) - 1
             k = max(0, min(k, nsteps - 1))
             bg[sec] = cap * sched[n][k]
-        series[n] = (bg, tcp, rtt)
+        series[n] = (bg, tcp, rtt, retr)
     for sec in range(1, duration + 1):
         row = {"t_s": sec}
         for n in NAMES:
-            bg, tcp, rtt = series[n]
+            bg, tcp, rtt, retr = series[n]
             row[f"{n}_bg_mbps"] = round(bg[sec], 1)
             row[f"{n}_tcp_mbps"] = round(tcp[sec], 2) if sec in tcp else ""
+            row[f"{n}_tcp_retr"] = retr.get(sec, "")
             row[f"{n}_rtt_ms"] = (round(sum(rtt[sec]) / len(rtt[sec]), 2)
                                   if sec in rtt else "")
         rows.append(row)
@@ -176,6 +215,25 @@ def run(net, duration, step, lo, hi, seed, outdir):
         wr = csv.DictWriter(fh, fieldnames=list(rows[0].keys()))
         wr.writeheader()
         wr.writerows(rows)
+    # ---- packet-loss summary: configured vs measured ----------------------
+    import glob
+    lines = ["path,configured_loss_pct,ping_sent,ping_lost,ping_loss_pct,"
+             "udp_packets,udp_lost,udp_loss_pct,tcp_retransmits"]
+    info("\n*** PACKET LOSS SUMMARY (configured vs measured)\n")
+    info(f"  {'path':6} {'config':>7} {'ping loss':>16} {'background UDP loss':>26} "
+         f"{'TCP resent':>11}\n")
+    for n in NAMES:
+        sent, lost, pl = ping_loss(read(f"{outdir}/ping_{n}.log"))
+        pk, ul, ulp = udp_loss(sorted(glob.glob(f"{outdir}/bg_{n}_*.json")))
+        rt = sum(series[n][3].values())
+        info(f"  {LABEL[n]:6} {PATHS[n]['loss']:6g}% {pl:6.2f}% ({lost}/{sent}) "
+             f"{ulp:8.2f}% ({ul}/{pk} pkts) {rt:11d}\n")
+        lines.append(f"{n},{PATHS[n]['loss']},{sent},{lost},{pl:.3f},{pk},{ul},{ulp:.3f},{rt}")
+    with open(os.path.join(outdir, "loss_summary.csv"), "w") as fh:
+        fh.write("\n".join(lines) + "\n")
+    info("  (UDP loss can be higher than configured when the path is overloaded:\n"
+         "   then queue drops add to the random loss)\n")
+
     subprocess.run(["chmod", "-R", "a+rwX", outdir])
     info(f"\n*** Time series saved: {csv_path}\n")
     return csv_path

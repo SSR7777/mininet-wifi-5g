@@ -136,7 +136,8 @@ sudo python3 vary_traffic.py --duration 120 --step 10 --seed 7
 
 Output in `vary_results/`:
 
-- `timeseries.csv` has background load, TCP throughput and RTT for every second.
+- `timeseries.csv` has background load, TCP throughput, TCP retransmissions and RTT for every second.
+- `loss_summary.csv` compares the configured loss with the measured loss: ping loss, background UDP loss and TCP retransmissions. The same summary is printed at the end of the run.
 - `vary_throughput.png` shows TCP throughput on each path, drawn over the changing background load.
 - `vary_rtt.png` shows RTT over time on both paths.
 
