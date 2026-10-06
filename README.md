@@ -143,6 +143,31 @@ Output in `vary_results/`:
 
 The same `--seed` always produces the same load pattern, so runs can be compared.
 
+## Sending a real video
+
+`video_stream.py` sends a real video from the sender (`sta1`) to the receiver (`srv`). It **tests each network individually**: first over Wi-Fi only, then over 5G only. The receiver saves what arrived, and the script compares it with the original.
+
+```bash
+sudo apt install -y ffmpeg                            # once
+sudo python3 video_stream.py                          # Wi-Fi, then 5G (built-in test video)
+sudo python3 video_stream.py --path wifi              # Wi-Fi only
+sudo python3 video_stream.py --path 5g                # 5G only
+sudo python3 video_stream.py --video myvideo.mp4      # your own video
+sudo python3 video_stream.py --transport tcp          # reliable TCP instead of UDP streaming
+sudo python3 video_stream.py --background             # add iPerf background traffic
+```
+
+The default settings are in the `[video]` section of `config.ini`: file, bitrate, length, transport and background.
+
+Output in `video_results/`:
+
+- `original.mp4` is the video that was sent.
+- `received_wifi.ts` and `received_5g.ts` are what arrived over each network. Copy them to a computer and play them in VLC.
+- `side_by_side.mp4` shows Wi-Fi on the left and 5G on the right, for a quick visual comparison.
+- `video_summary.csv` lists, per network, frames received, decoder errors, and PSNR and SSIM (picture quality compared with the original).
+
+With UDP, lost packets show up as damaged or frozen frames, so 1 % loss on Wi-Fi is clearly visible while 0.1 % on 5G barely is. With TCP, lost packets are resent, so the picture is perfect but delivery can take longer than the video's length.
+
 ## Note on Wi-Fi shaping
 
 Mininet-WiFi puts its own rate limit on the radio interface, based on mode and distance (about 10 Mbit/s in mode g), and that overrides `TCLink`. The script therefore applies the Wi-Fi path's rate, delay and loss with `tc netem` directly on `sta1-wlan0` and `srv-wifi` after the network starts.
