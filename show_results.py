@@ -14,7 +14,7 @@ import argparse
 import csv
 import os
 
-LABEL = {"wifi": "Wi-Fi", "5g": "5G"}
+LABEL = {"wifi": "Wi-Fi", "5g": "5G", "multi": "Wi-Fi + 5G"}
 
 
 def table(title, header, rows, align=None):
@@ -449,9 +449,11 @@ def show_players(d):
     V = read_csv(os.path.join(d, "players_notlive_summary.csv"))    # not live
     D = read_csv(os.path.join(d, "players_detail.csv"))
     VD = read_csv(os.path.join(d, "players_notlive_detail.csv"))
-    if not S and not V:
+    if not S and not V and not os.path.exists(os.path.join(d, "players_quic_live_summary.csv")) \
+            and not os.path.exists(os.path.join(d, "players_quic_notlive_summary.csv")) \
+            and not os.path.exists(os.path.join(d, "players_livevideo_summary.csv")):
         raise SystemExit(f"No results in {d}/ - run: sudo python3 players_test.py --video BBB.webm")
-    nets = [n for n in ("wifi", "5g") if any(r["path"] == n for r in S + V)]
+    nets = [n for n in ("wifi", "5g", "multi") if any(r["path"] == n for r in S + V)]
     one_l = {r["path"]: r for r in S if r["players"] == "1"}
     one_v = {r["path"]: r for r in V if r["players"] == "1"}
 
@@ -471,8 +473,9 @@ def show_players(d):
             return out
         pl = lambda r: num(r.get("radio_path_loss_db"), 1, " dB") if r.get("radio_path_loss_db") else "n/a (wired)"
         rows = [
-            ["HOW IT IS WATCHED", *["real time (UDP)" if m == "live" else "download+play (TCP)"
-                                   for _, m, _ in cols]],
+            ["HOW IT IS WATCHED", *["real time (UDP)" if m == "live" else
+                                   ("download+play (MPTCP)" if n == "multi" else "download+play (TCP)")
+                                   for n, m, _ in cols]],
             None,
             ["PLAYBACK (what the viewer sees)", *[""] * len(cols)],
             r_("  Start-up time (first picture)", "startup_ms", "startup_ms", " ms", 0),
@@ -509,8 +512,12 @@ def show_players(d):
               "  and starts after %s s is buffered; a stall = the buffer ran empty."
               % (num(S[0]["buffer_ms"], 0) if S else "-", num(V[0]["vod_buffer_s"], 1) if V else "-"))
 
+    # more than one player in this folder? (otherwise skip the many-player tables)
+    many = any(int(r["players"]) > 1 for r in S + V + read_csv(os.path.join(d, "players_quic_live_summary.csv"))
+               + read_csv(os.path.join(d, "players_quic_notlive_summary.csv")))
+
     # 2. live vs not live with more players
-    if S and V:
+    if S and V and many:
         rows = []
         for n in nets:
             for N in sorted({int(r["players"]) for r in S + V if r["path"] == n}):
@@ -530,7 +537,7 @@ def show_players(d):
         print("  Start-up / Delay in ms.  Live = UDP real time.  Not live = HTTP/TCP download, plays after the buffer.")
 
     # 3. live details
-    if S:
+    if S and many:
         rows = []
         for n in nets:
             for r in [x for x in S if x["path"] == n]:
@@ -549,7 +556,7 @@ def show_players(d):
         print("  Start-up / Delay / Jitter / RTT in ms.  CPU % near 100 = extra delay may come from the VM.")
 
     # 4. not live details
-    if V:
+    if V and many:
         rows = []
         for n in nets:
             for r in [x for x in V if x["path"] == n]:
@@ -566,6 +573,125 @@ def show_players(d):
                "Stalls", "Stall ms", "Smooth %", "Worst %", "Identical", "TCP retr %", "RTT",
                "Bg Mb/s", "CPU %"], rows[:-1])
         print("  Start-up / Stall / RTT in ms.  Stall = playback caught up with the download and froze.")
+
+    # ---------------- QUIC (picoquic) players ----------------
+    QL = read_csv(os.path.join(d, "players_quic_live_summary.csv"))
+    QV = read_csv(os.path.join(d, "players_quic_notlive_summary.csv"))
+    if QL or QV:
+        qnets = [n for n in ("wifi", "5g", "multi") if any(r["path"] == n for r in QL + QV + S + V)]
+        get = lambda rows, n, N, **kw: next((r for r in rows if r["path"] == n and r["players"] == str(N)
+                                             and all(r.get(k) == v for k, v in kw.items())), {})
+
+        # A. one player: every way of sending, per network
+        for n in qnets:
+            cols = [("Live UDP", get(S, n, 1), "udp"),
+                    ("Live QUIC streams", get(QL, n, 1, quic_mode="stream"), "qs"),
+                    ("Live QUIC datagrams", get(QL, n, 1, quic_mode="dgram"), "qd"),
+                    ("Not live MPTCP" if n == "multi" else "Not live TCP", get(V, n, 1), "tcp"),
+                    ("Not live QUIC (HTTP/3)", get(QV, n, 1), "qv")]
+            cols = [c for c in cols if c[1]]
+            if not cols:
+                continue
+
+            def val(kind, r, key):
+                live_keys = {"start": "startup_ms", "smooth": "smooth_playback_pct",
+                             "davg": "frame_delay_avg_ms" if kind == "udp" else "delay_avg_ms",
+                             "d95": "frame_delay_p95_ms" if kind == "udp" else "delay_p95_ms",
+                             "dmax": "frame_delay_max_ms" if kind == "udp" else "delay_max_ms",
+                             "jit": "jitter_ms", "lost": "frames_lost_pct" if kind == "udp" else "lost_pct",
+                             "late": "frames_late_pct" if kind == "udp" else "late_pct",
+                             "rtt": "ping_rtt_ms"}
+                vod_keys = {"start": "startup_ms", "smooth": "smooth_playback_pct", "dl": "download_avg_s",
+                            "speed": "throughput_per_player_mbps", "stall": "stalls_per_player",
+                            "resent": "tcp_retrans_pct", "rtt": "ping_rtt_ms"}
+                live = kind in ("udp", "qs", "qd")
+                if key == "resent":
+                    return num(r.get("quic_retrans_pct"), 2, " %") if kind in ("qs", "qd") else \
+                        (num(r.get("tcp_retrans_pct"), 2, " %") if not live else "none (UDP)")
+                if key == "pic":
+                    if kind == "udp":
+                        return num(r.get("psnr_avg_db"), 1, " dB PSNR")
+                    if kind in ("tcp", "qv"):
+                        return "identical" if r.get("all_identical") == "yes" else "NOT identical"
+                    return "-"
+                k = (live_keys if live else vod_keys).get(key)
+                if not k:
+                    return "real time" if key in ("dl", "speed") and live else ("0" if key == "stall" else "n/a")
+                u = {"start": " ms", "smooth": " %", "davg": " ms", "d95": " ms", "dmax": " ms", "jit": " ms",
+                     "lost": " %", "late": " %", "dl": " s", "speed": " Mbit/s", "rtt": " ms"}.get(key, "")
+                dd = 0 if key in ("start",) else (2 if key in ("lost", "late", "dl") else 1)
+                return num(r.get(k), dd, unit=u)
+            spec = [("PLAYBACK", None), ("  Start-up time", "start"), ("  Smooth playback", "smooth"),
+                    ("  Lost (never arrived)", "lost"), ("  Late (> buffer)", "late"),
+                    ("  Stalls (buffer empty)", "stall"), ("  Picture vs original", "pic"), None,
+                    ("DELAY / TIME", None), ("  Frame delay average", "davg"), ("  Frame delay 95 %", "d95"),
+                    ("  Frame delay max", "dmax"), ("  Jitter", "jit"), ("  Download time", "dl"),
+                    ("  Speed per player", "speed"), ("  RTT (ping)", "rtt"), None,
+                    ("RELIABILITY", None), ("  Packets resent", "resent")]
+            rows = []
+            for item in spec:
+                if item is None:
+                    rows.append(None)
+                elif item[1] is None:
+                    rows.append([item[0], *[""] * len(cols)])
+                else:
+                    rows.append([item[0], *[val(k, r, item[1]) for _, r, k in cols]])
+            if n == "multi":
+                rows += [None, ["BOTH PATHS USED", *[""] * len(cols)],
+                         ["  Video over Wi-Fi", *[num(r.get("mb_over_wifi"), 1, " MB") for _, r, _ in cols]],
+                         ["  Video over 5G", *[num(r.get("mb_over_5g"), 1, " MB") for _, r, _ in cols]],
+                         ["  Share on 5G", *[num(r.get("share_5g_pct"), 0, " %") for _, r, _ in cols]]]
+            table(f"ONE VIDEO PLAYER - {LABEL[n]} - UDP vs TCP vs QUIC (picoquic)",
+                  ["Measurement", *[c[0] for c in cols]], rows)
+        print("  QUIC frame delay is counted from the moment the player asks for the stream, so it includes\n"
+              "  one round trip; UDP frame delay is one-way. QUIC live start-up = request to first frame (no\n"
+              "  video decoder), UDP live start-up includes the ffmpeg player detecting the stream.\n"
+              "  Compare how each column changes as players are added.")
+
+        # B. live with more players
+        if QL and many:
+            rows = []
+            for n in qnets:
+                for N in sorted({int(r["players"]) for r in QL + S if r["path"] == n}):
+                    u, qs, qd = get(S, n, N), get(QL, n, N, quic_mode="stream"), get(QL, n, N, quic_mode="dgram")
+                    rows.append([LABEL[n], N,
+                                 num(u.get("frame_delay_avg_ms"), 1), num(qs.get("delay_avg_ms"), 1),
+                                 num(qd.get("delay_avg_ms"), 1), "|",
+                                 num(u.get("frames_lost_pct"), 2), num(qs.get("lost_pct"), 2),
+                                 num(qd.get("lost_pct"), 2), "|",
+                                 num(u.get("smooth_playback_pct"), 1), num(qs.get("smooth_playback_pct"), 1),
+                                 num(qd.get("smooth_playback_pct"), 1), "|",
+                                 num(qs.get("quic_retrans_pct"), 2), num(qd.get("quic_retrans_pct"), 2)])
+                rows.append(None)
+            table("LIVE - MORE PLAYERS: UDP vs QUIC streams vs QUIC datagrams (average per player)",
+                  ["Network", "Players", "Delay UDP", "Delay Q-str", "Delay Q-dgr", "|", "Lost% UDP",
+                   "Lost% Q-str", "Lost% Q-dgr", "|", "Smooth UDP", "Smooth Q-str", "Smooth Q-dgr", "|",
+                   "Resent Q-str %", "Resent Q-dgr %"], rows[:-1])
+            print("  Delay in ms (QUIC includes one round trip).  Q-str = QUIC streams (reliable), "
+                  "Q-dgr = QUIC datagrams (unreliable).")
+
+        # C. not live with more players
+        if QV and many:
+            rows = []
+            for n in qnets:
+                for N in sorted({int(r["players"]) for r in QV + V if r["path"] == n}):
+                    t, q = get(V, n, N), get(QV, n, N)
+                    rows.append([LABEL[n], N, num(t.get("startup_ms"), 0), num(q.get("startup_ms"), 0), "|",
+                                 num(t.get("download_avg_s"), 2), num(q.get("download_avg_s"), 2), "|",
+                                 num(t.get("throughput_per_player_mbps"), 1),
+                                 num(q.get("throughput_per_player_mbps"), 1), "|",
+                                 num(t.get("stalls_per_player"), 1), num(q.get("stalls_per_player"), 1), "|",
+                                 (t.get("all_identical") or "-").upper(), (q.get("all_identical") or "-").upper(),
+                                 "|", num(t.get("tcp_retrans_pct"), 2), num(q.get("tcp_retrans_pct"), 2)])
+                rows.append(None)
+            table("NOT LIVE - MORE PLAYERS: HTTP/TCP vs HTTP/3 over QUIC (average per player)",
+                  ["Network", "Players", "Start TCP", "Start QUIC", "|", "Download TCP", "Download QUIC", "|",
+                   "Mbit/s TCP", "Mbit/s QUIC", "|", "Stalls TCP", "Stalls QUIC", "|", "Ident. TCP",
+                   "Ident. QUIC", "|", "Resent TCP %", "Resent QUIC %"], rows[:-1])
+            print("  Start-up in ms, download in s.  Both resend lost packets, so files arrive identical.")
+
+    show_three(d)
+    show_livevideo(d)
 
     # 5. each player in the biggest run
     for n in nets:
@@ -595,6 +721,127 @@ def show_players(d):
           f"*_detail.csv, live_<net>_<N>players/player_<k>.ts, players_grid.mp4")
 
 
+def show_livevideo(d):
+    """The real video sent live over picoquic: Wi-Fi vs 5G vs Wi-Fi + 5G."""
+    num = _pnum
+    R = read_csv(os.path.join(d, "players_livevideo_summary.csv"))
+    if not R:
+        return False
+    nets = [n for n in ("wifi", "5g", "multi") if any(r["path"] == n for r in R)]
+    get = lambda n, m: next((r for r in R if r["path"] == n and r["quic_mode"] == m), {})
+    rows = []
+    for m, title in (("stream", "QUIC STREAMS (reliable: lost packets are resent)"),
+                     ("dgram", "QUIC DATAGRAMS (unreliable: lost packets are not resent)")):
+        recs = [get(n, m) for n in nets]
+        if not any(recs):
+            continue
+        L = lambda lab, fn: rows.append([lab, *[fn(r) if r else "-" for r in recs]])
+        rows.append([title, *[""] * len(nets)])
+        L("  Start-up (first video bytes)", lambda r: num(r.get("startup_ms"), 0, " ms"))
+        L("  Delay average", lambda r: num(r.get("delay_avg_ms"), 1, " ms"))
+        L("  Delay 95 % / max", lambda r: f"{num(r.get('delay_p95_ms'), 1)} / {num(r.get('delay_max_ms'), 1)} ms")
+        L("  Jitter", lambda r: num(r.get("jitter_ms"), 1, " ms"))
+        L("  Video bytes received", lambda r: num(r.get("bytes_received_pct"), 2, " %"))
+        L("  Video bytes in time (< buffer)", lambda r: num(r.get("bytes_on_time_pct"), 2, " %"))
+        L("  Frames shown to the viewer", lambda r: f"{r.get('frames_shown')} / {r.get('frames_total')}"
+                                                     f" ({num(r.get('frames_shown_pct'), 1)} %)")
+        L("  Picture vs original (PSNR)", lambda r: num(r.get("psnr_db"), 1, " dB"))
+        L("  Picture similarity (SSIM, 1 = same)", lambda r: num(r.get("ssim"), 3))
+        L("  Decoder errors", lambda r: r.get("decoder_errors") or "0")
+        L("  Packets resent by QUIC", lambda r: num(r.get("quic_retrans_pct"), 2, " %"))
+        L("  Packet loss in the network", lambda r: num(r.get("packet_loss_pct"), 2, " %"))
+        if "multi" in nets:
+            L("  Video over Wi-Fi / 5G", lambda r: f"{num(r.get('mb_over_wifi'), 1)} / {num(r.get('mb_over_5g'), 1)} MB"
+              if r.get("path") == "multi" else ("all on Wi-Fi" if r.get("path") == "wifi" else "all on 5G"))
+            L("  Share on 5G", lambda r: num(r.get("share_5g_pct"), 0, " %") if r.get("path") == "multi"
+              else ("0 %" if r.get("path") == "wifi" else "100 %"))
+        rows.append(None)
+    first = {n: next((r for r in R if r["path"] == n), {}) for n in nets}
+    rows.append(["CONDITIONS", *[""] * len(nets)])
+    rows.append(["  RTT (ping)", *[(f"{num(first[n].get('ping_rtt_ms'), 1)} / {num(first[n].get('ping_rtt_5g_ms'), 1)} ms"
+                                    if first[n].get("ping_rtt_5g_ms") else num(first[n].get("ping_rtt_ms"), 1, " ms"))
+                                   for n in nets]])
+    rows.append(["  Configured loss", *[(first[n].get("configured_loss_pct") or "-") + " %" for n in nets]])
+    rows.append(["  Background traffic", *[num(first[n].get("background_mbps"), 0, " Mbit/s") for n in nets]])
+    v = R[0]
+    table(f"LIVE VIDEO STREAMING (real video, {num(v.get('video_mb'), 1)} MB) over picoquic - "
+          + " vs ".join(LABEL[n] for n in nets),
+          ["Measurement", *[LABEL[n] for n in nets]], rows)
+    print("  The real video is sent live from the sender to one player on the receiver. Bytes that arrive later\n"
+          "  than the player buffer (%s ms) are useless for live viewing; a missing frame freezes the picture.\n"
+          "  Delay is counted from when the sender should send the bytes, so it includes about one round trip.\n"
+          "  Watch:  %s/livevideo_<stream|dgram>_compare.mp4  (original + every network side by side)\n"
+          "          %s/livevideo_<mode>_<network>/live.mp4    (what the player showed)"
+          % (num(v.get("buffer_ms"), 0), os.path.abspath(d), os.path.abspath(d)))
+    return True
+
+
+def show_three(d):
+    """Wi-Fi vs 5G vs Wi-Fi + 5G (multipath), one player, every way of sending."""
+    num = _pnum
+    S = read_csv(os.path.join(d, "players_summary.csv"))
+    V = read_csv(os.path.join(d, "players_notlive_summary.csv"))
+    QL = read_csv(os.path.join(d, "players_quic_live_summary.csv"))
+    QV = read_csv(os.path.join(d, "players_quic_notlive_summary.csv"))
+    nets = ("wifi", "5g", "multi")
+    if not any(r["path"] == "multi" for r in V + QL + QV):
+        return
+    N = "1" if any(r["players"] == "1" for r in V + QL + QV if r["path"] == "multi") else \
+        min((r["players"] for r in V + QL + QV if r["path"] == "multi"), key=int)
+    get = lambda rows, n, **kw: next((r for r in rows if r["path"] == n and r["players"] == N
+                                      and all(r.get(k) == v for k, v in kw.items())), {})
+    rtt = lambda r: (f"{num(r.get('ping_rtt_ms'), 1)} / {num(r.get('ping_rtt_5g_ms'), 1)} ms"
+                     if r.get("ping_rtt_5g_ms") else num(r.get("ping_rtt_ms"), 1, " ms"))
+    share = lambda r, n: (num(r.get("share_5g_pct"), 0, " %") if n == "multi" else
+                          ("0 %" if n == "wifi" else "100 %")) if r else "-"
+    rows = []
+
+    def block(title, recs, spec):
+        rows.append([title, *[""] * 3])
+        for lab, fn in spec:
+            rows.append([lab, *[fn(recs[n], n) if recs[n] else "-" for n in nets]])
+        rows.append(None)
+
+    for qm, title in (("stream", "LIVE - QUIC streams (reliable)"), ("dgram", "LIVE - QUIC datagrams (unreliable)")):
+        recs = {n: get(QL, n, quic_mode=qm) for n in nets}
+        if any(recs.values()):
+            block(title, recs, [
+                ("  Start-up time", lambda r, n: num(r.get("startup_ms"), 0, " ms")),
+                ("  Frame delay average", lambda r, n: num(r.get("delay_avg_ms"), 1, " ms")),
+                ("  Frame delay 95 % / max", lambda r, n: f"{num(r.get('delay_p95_ms'), 1)} / "
+                                                          f"{num(r.get('delay_max_ms'), 1)} ms"),
+                ("  Jitter", lambda r, n: num(r.get("jitter_ms"), 1, " ms")),
+                ("  Lost / late", lambda r, n: f"{num(r.get('lost_pct'), 2)} / {num(r.get('late_pct'), 2)} %"),
+                ("  Smooth playback", lambda r, n: num(r.get("smooth_playback_pct"), 1, " %")),
+                ("  Packets resent", lambda r, n: num(r.get("quic_retrans_pct"), 2, " %")),
+                ("  Share of video on 5G", share)])
+    for rws, title in ((V, "NOT LIVE - TCP (MPTCP for Wi-Fi + 5G)"),
+                       (QV, "NOT LIVE - HTTP/3 over QUIC (multipath QUIC for Wi-Fi + 5G)")):
+        recs = {n: get(rws, n) for n in nets}
+        if any(recs.values()):
+            block(title, recs, [
+                ("  Start-up time", lambda r, n: num(r.get("startup_ms"), 0, " ms")),
+                ("  Download time (whole video)", lambda r, n: num(r.get("download_avg_s"), 2, " s")),
+                ("  Speed per player", lambda r, n: num(r.get("throughput_per_player_mbps"), 1, " Mbit/s")),
+                ("  Stalls", lambda r, n: num(r.get("stalls_per_player"), 1)),
+                ("  File identical", lambda r, n: (r.get("all_identical") or "-").upper()),
+                ("  Packets resent", lambda r, n: num(r.get("tcp_retrans_pct"), 2, " %")),
+                ("  Share of video on 5G", share)])
+    rows.append(["CONDITIONS", "", "", ""])
+    rows.append(["  RTT (ping)  Wi-Fi / 5G", *[rtt(next((r for r in V + QL + QV if r["path"] == n), {}))
+                                              for n in nets]])
+    cl = lambda r: (r.get("configured_loss_pct") or "-") + (" %" if r.get("configured_loss_pct") else "")
+    rows.append(["  Configured loss  Wi-Fi / 5G", *[cl(next((r for r in V + QL + QV if r["path"] == n), {}))
+                                                   for n in nets]])
+    rows.append(["  Background traffic", *[num(next((r for r in V + QL + QV if r["path"] == n), {})
+                                               .get("background_mbps"), 0, " Mbit/s") for n in nets]])
+    table(f"WI-FI vs 5G vs WI-FI + 5G TOGETHER ({N} player{'s' if N != '1' else ''})",
+          ["Measurement", "Wi-Fi", "5G", "Wi-Fi + 5G"], rows)
+    print("  Wi-Fi + 5G = the same video sent over both paths at once: multipath QUIC (picoquic -M) for QUIC,\n"
+          "  MPTCP for TCP. Plain UDP live has no multipath, so it is not in this table.\n"
+          "  Share on 5G = bytes of the video that arrived on the receiver's 5G interface.")
+
+
 if __name__ == "__main__":
     ap = argparse.ArgumentParser(description="Show test results as tables")
     ap.add_argument("--dir", default=None, help="results folder")
@@ -604,8 +851,15 @@ if __name__ == "__main__":
                     help="QUIC without live stream (quic_results/) vs with live stream (live_results/)")
     ap.add_argument("--one", action="store_true", help="Wi-Fi vs 5G, all QUIC tests in one table")
     ap.add_argument("--players", action="store_true", help="video players test (players_results/)")
+    ap.add_argument("--three", action="store_true", help="Wi-Fi vs 5G vs Wi-Fi + 5G only")
+    ap.add_argument("--video", action="store_true", help="live real video over picoquic only")
     a = ap.parse_args()
-    if a.players:
+    if a.video:
+        if not show_livevideo(a.dir or "players_results"):
+            print("No live video results - run: sudo python3 players_test.py --video BBB.webm --mode video")
+    elif a.three:
+        show_three(a.dir or "players_results")
+    elif a.players:
         show_players(a.dir or "players_results")
     elif a.one:
         show_one("quic_results", "live_results")

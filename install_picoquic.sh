@@ -3,6 +3,7 @@
 # into ~/picoquic and run a quick self-test.
 #   bash install_picoquic.sh
 set -e
+HERE="$(cd "$(dirname "$0")" && pwd)"
 cd ~
 echo "*** Installing build tools"
 sudo apt-get update -qq
@@ -23,6 +24,9 @@ sed -i 's/param.local_af = 0;/param.local_af = AF_INET;/' picoquicfirst/picoquic
 grep -q QUICPERF_REPORT picoquicfirst/picoquicdemo.c || sed -i \
   '/quicperf_ctx = quicperf_create_ctx(client_scenario_text, NULL);/a\            if (quicperf_ctx != NULL \&\& getenv("QUICPERF_REPORT") != NULL) { quicperf_ctx->report_file = fopen(getenv("QUICPERF_REPORT"), "w"); }' \
   picoquicfirst/picoquicdemo.c
+
+# Let quicperf carry a real video file (live video test in players_test.py --mode video)
+python3 "$HERE/patch_quicperf_video.py" ~/picoquic
 
 echo "*** Building picoquic (picotls is downloaded automatically, takes a few minutes)"
 cmake -DPICOQUIC_FETCH_PTLS=Y -DCMAKE_BUILD_TYPE=Release . > /dev/null

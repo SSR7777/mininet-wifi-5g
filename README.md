@@ -3,13 +3,16 @@
 A client (`sta1`) with two access paths, **Wi-Fi** and **emulated 5G**, to one server (`srv`), built with
 [Mininet-WiFi](https://github.com/intrig-unicamp/mininet-wifi). All network values are in `config.ini`.
 
-## The project in three parts
+## The project in four parts
 
 | Part | What it does | Main files |
 |---|---|---|
 | **1. Wi-Fi vs 5G comparison** | Emulates both networks with the assignment's values (capacity, delay, loss), adds 60 % iPerf3 background traffic that also varies over time, and compares throughput, RTT and loss | `config.ini`, `netconfig.py`, `wifi_5g_topology.py`, `sweep.py`, `plot.py`, `vary_traffic.py`, `install.sh` |
-| **2. Video streaming, live and not live** | Sends a real video from the sender to the receiver over each network. It measures time to send, path loss, packet loss, delay, background and picture quality, connects 1 or many video players at the receiver, and compares a live stream (UDP) with video on demand (HTTP/TCP) | `video_stream.py`, `players_test.py`, `show_results.py` |
+| **2. Video streaming, live and not live** | Sends a real video from the sender to the receiver over each network. It measures time to send, path loss, packet loss, delay, background and picture quality, connects 1 or many video players at the receiver, and compares a live stream (UDP) with video on demand (HTTP/TCP), and the same players over picoquic (QUIC) | `video_stream.py`, `players_test.py`, `show_results.py` |
 | **3. QUIC with picoquic** | Uses [picoquic](https://github.com/private-octopus/picoquic) (QUIC over UDP) for the video: a file download (HTTP/3 over QUIC streams) and a live stream over QUIC streams and QUIC datagrams | `install_picoquic.sh`, `quic_test.py`, `quic_live.py`, `show_results.py` |
+| **4. Wi-Fi + 5G together and live real video** | Uses both paths at once (multipath QUIC, MPTCP), sends the real video live over picoquic on Wi-Fi, 5G and Wi-Fi + 5G, and shows every result in one grid video (VLC) | `players_test.py`, `patch_quicperf_video.py`, `make_grid.py`, `show_results.py` |
+
+Every part has its own branch (`part1-wifi-5g-comparison`, `part2-video-streaming`, `part3-picoquic`, `part4-multipath-live-video`); `main` has everything. **[GUIDE.md](GUIDE.md) lists every step from the start, in order.**
 
 ## Setup (Ubuntu VM)
 
@@ -39,6 +42,11 @@ python3 show_results.py --players                  # show the tables again
 sudo python3 quic_test.py --video BBB.webm         # file over QUIC
 sudo python3 quic_live.py                          # live stream over QUIC
 python3 show_results.py --one                      # Wi-Fi vs 5G, all QUIC tests in one table
+
+# Part 4 - Wi-Fi + 5G together, live real video
+sudo python3 players_test.py --video BBB.webm --mode video   # Wi-Fi, 5G, Wi-Fi + 5G
+python3 show_results.py --video                    # table
+python3 make_grid.py                               # all videos in one grid -> players_results/livevideo_grid.mp4
 ```
 
 ---
@@ -277,7 +285,7 @@ For each player the test measures:
 - **Picture quality:** PSNR against the original.
 - **Network figures:** packet loss, RTT, background traffic and path loss.
 
-The test runs for 1, 2, 4 and 8 players (`--players`) on each network, with constant conditions, so the only thing that changes is how many viewers share the network.
+By default the test uses **one video player** at the receiver. To see what happens when more viewers share the network, add `--players 1,2,4,8`. Conditions stay constant, so the only thing that changes is how many viewers there are.
 
 It covers two ways of watching (`--mode live / notlive / both`, default both):
 
@@ -290,7 +298,7 @@ It covers two ways of watching (`--mode live / notlive / both`, default both):
 
 ```bash
 sudo python3 players_test.py --video BBB.webm
-sudo python3 players_test.py --video BBB.webm --players 1,2,4,8,16 --buffer 200
+sudo python3 players_test.py --video BBB.webm --players 1,2,4,8 --buffer 200   # more players
 sudo python3 players_test.py --video BBB.webm --mode live      # only live
 python3 show_results.py --players
 ```
@@ -302,7 +310,63 @@ Output in `players_results/`:
 - `live_<network>_<N>players/player_<k>.ts`: what each live player played.
 - `live_<network>_<N>players/players_grid.mp4`: up to 4 players side by side.
 
+### Players over QUIC (picoquic)
+
+The same test also runs the players over **picoquic** (`--mode quic`, included in `--mode all`):
+
+| | How it works |
+|---|---|
+| **Live, QUIC streams** | Each player opens a picoquic connection (quicperf) and gets its own live 4 Mbit/s, 30 fps stream. Reliable: lost packets are resent. |
+| **Live, QUIC datagrams** | The same, but over QUIC datagrams (RFC 9221). Unreliable: lost packets are not resent. |
+| **Not live, HTTP/3 over QUIC** | Each player downloads `video.mp4` from the picoquic server with HTTP/3 and starts playing after the buffer. |
+
+The tables then compare **UDP vs TCP vs QUIC**: one player per network, live with more players (UDP vs QUIC streams vs QUIC datagrams), and not live with more players (HTTP/TCP vs HTTP/3 over QUIC).
+
+```bash
+sudo python3 players_test.py --video BBB.webm --mode quic   # only the picoquic players (keeps UDP/TCP results)
+sudo python3 players_test.py --video BBB.webm --mode all    # UDP, TCP and QUIC
+python3 show_results.py --players
+```
+
 Every player decodes video, so many players also load the VM's CPU. The CPU % column shows this. If it is close to 100 %, part of the extra delay comes from the VM rather than the network.
+
+### Wi-Fi vs 5G vs Wi-Fi + 5G together (multipath)
+
+`--path all` (the default) runs every test over Wi-Fi, over 5G, and over **both at once** ("Wi-Fi + 5G"):
+
+| Way of sending | Wi-Fi + 5G uses |
+|---|---|
+| Live, QUIC streams / datagrams | **Multipath QUIC** (picoquic `-M`; the receiver adds a 2nd path over its 5G interface) |
+| Not live, HTTP/3 | **Multipath QUIC** download |
+| Not live, HTTP/TCP | **MPTCP** (the sender announces its 5G address; needs Linux 5.6 or newer, otherwise skipped) |
+| Live, plain UDP | not possible (UDP has no multipath), only Wi-Fi and 5G |
+
+Background traffic runs on both paths during the Wi-Fi + 5G runs. The test also counts how many bytes of the video arrived on each of the receiver's interfaces ("Share on 5G").
+
+```bash
+sudo python3 players_test.py --video BBB.webm                   # Wi-Fi, 5G and Wi-Fi + 5G
+sudo python3 players_test.py --video BBB.webm --path multi      # only Wi-Fi + 5G
+python3 show_results.py --three                                 # only the Wi-Fi vs 5G vs Wi-Fi + 5G table
+```
+
+### Live streaming of the real video over picoquic (Wi-Fi, 5G, Wi-Fi + 5G)
+
+`--mode video` (included in `--mode all`) sends **the real video itself** live over picoquic to one player on the receiver:
+
+1. The video is packed as an MPEG transport stream (`live.ts`, the format used for live TV/IPTV).
+2. The picoquic sender sends its bytes at the video's own pace (real time), over **QUIC streams** (reliable) or **QUIC datagrams** (unreliable), and over **multipath QUIC** for Wi-Fi + 5G.
+3. The receiver writes every byte where it belongs and logs when it arrived. Bytes later than the player buffer (`--buffer`, 150 ms) are dropped, as a live player would. Lost datagrams leave holes.
+4. The result is decoded into `live.mp4` (what the viewer saw), compared with the original (PSNR/SSIM, frames shown), and put side by side with the original and the other networks.
+
+picoquic's `quicperf` normally sends filler bytes. `patch_quicperf_video.py` (applied by `install_picoquic.sh`) makes it carry the video file instead. Without its environment variables quicperf behaves as before.
+
+```bash
+python3 patch_quicperf_video.py ~/picoquic && (cd ~/picoquic && make -j"$(nproc)" picoquicdemo)   # once
+sudo python3 players_test.py --video BBB.webm --mode video
+python3 show_results.py --video
+```
+
+Watch `players_results/livevideo_stream_compare.mp4` and `livevideo_dgram_compare.mp4` (original, Wi-Fi, 5G and Wi-Fi + 5G in a 2 x 2 grid), or each player's `livevideo_<mode>_<network>/live.mp4`.
 
 ---
 

@@ -33,7 +33,7 @@ commit_part "Part 2: video streaming to the receiver, delay measurements, live a
   video_stream.py players_test.py show_results.py
 
 commit_part "Part 3: QUIC with picoquic (file transfer and live streaming); README organised in three parts" \
-  install_picoquic.sh quic_test.py quic_live.py README.md push_to_github.sh
+  install_picoquic.sh patch_quicperf_video.py make_grid.py quic_test.py quic_live.py README.md GUIDE.md push_to_github.sh organize_github.sh
 
 echo
 git log --oneline -5
