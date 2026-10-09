@@ -1,0 +1,15 @@
+# Python
+__pycache__/
+*.pyc
+# results produced by the scripts (they are large and recreated on every run)
+results/
+sweep_results/
+vary_results/
+video_results/
+quic_results/
+live_results/
+players_results/
+# video files
+*.webm
+*.mp4
+*.ts

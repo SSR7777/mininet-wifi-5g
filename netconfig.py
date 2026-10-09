@@ -18,7 +18,8 @@ def load(path=None):
 
     return {
         "file": path,
-        "wifi": path_cfg("wifi"),
+        "wifi": dict(path_cfg("wifi"),
+                     distance_m=cp.getfloat("wifi", "distance_m", fallback=5)),
         "5g": path_cfg("5g"),
         "bg_share": cp.getfloat("background", "share"),
         "bg_min": cp.getfloat("background", "min_share"),
@@ -32,5 +33,6 @@ def load(path=None):
 def summary(cfg):
     w, f = cfg["wifi"], cfg["5g"]
     return (f"config: {cfg['file']}\n"
-            f"  Wi-Fi: {w['bw']:g} Mbit/s, delay {w['delay_ms']:g} ms, loss {w['loss']:g} %\n"
+            f"  Wi-Fi: {w['bw']:g} Mbit/s, delay {w['delay_ms']:g} ms, loss {w['loss']:g} %, "
+            f"station {w.get('distance_m', 5):g} m from AP\n"
             f"  5G   : {f['bw']:g} Mbit/s, delay {f['delay_ms']:g} ms, loss {f['loss']:g} %\n")

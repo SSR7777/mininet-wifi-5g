@@ -58,6 +58,7 @@ def apply_config(cfg):
         PATHS[name]["delay"] = f"{cfg[name]['delay_ms']:g}ms"
         PATHS[name]["loss"] = cfg[name]["loss"]
     BG_SHARE = cfg["bg_share"]
+    PATHS["wifi"]["distance"] = cfg["wifi"].get("distance_m", 5)
 
 
 apply_config(netconfig.load())
@@ -68,7 +69,9 @@ def build_topology():
                        switch=OVSKernelSwitch)
 
     info("*** Creating nodes\n")
-    sta1 = net.addStation("sta1", ip="10.0.1.1/24", position="10,10,0")
+    # station is placed distance_m (config.ini) to the left of the AP at x=15
+    dist = PATHS["wifi"].get("distance", 5)
+    sta1 = net.addStation("sta1", ip="10.0.1.1/24", position=f"{15 - dist:g},10,0")
     srv = net.addHost("srv", ip="10.0.1.100/24")
     ap1 = net.addAccessPoint("ap1", ssid="wifi-path", mode="g", channel="1",
                              position="15,10,0", failMode="standalone")
