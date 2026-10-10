@@ -23,7 +23,7 @@ else
 fi
 
 for f in .gitignore iframe_test.py players_test.py show_results.py README.md GUIDE.md \
-         PART5_IFRAME.md push_part5.sh; do
+         PART5_IFRAME.md COMMANDS.md push_part5.sh; do
   [ -e "$f" ] && git add -- "$f"
 done
 if git diff --cached --quiet; then

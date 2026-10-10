@@ -1,6 +1,7 @@
 # Part 5 - I-frame aware sending (every step and command)
 
-Branch: `part5-iframe-aware` · Main script: `iframe_test.py` · Tables: `show_results.py --iframe`
+Branch: `part5-iframe-aware` · Main script: `iframe_test.py` · Tables: `show_results.py --iframe` ·
+Every command of the whole project: [COMMANDS.md](COMMANDS.md)
 
 **Idea:** a compressed video has I, P and B frames. If an I frame is lost, every frame that depends on it
 is lost too. So the important frames (I) are sent the safe way (**5G, QUIC stream: lost pieces are resent**)
@@ -84,6 +85,8 @@ sudo python3 iframe_test.py --video BBB.webm --analyse-only     # steps 1 + 2 on
 ## Step 3 - Sending I frames on 5G streams and P/B frames on Wi-Fi datagrams
 
 ```bash
+cd ~/mininet-wifi-5g
+sudo rm -rf iframe_results                                       # run again from scratch (new results)
 sudo python3 iframe_test.py --video BBB.webm                      # every case, H.264 + HEVC (~20 min)
 sudo python3 iframe_test.py --video BBB.webm --scenarios combo    # only: I -> 5G stream, P/B -> Wi-Fi dgram
 sudo python3 iframe_test.py --video BBB.webm --scenarios single   # only Wi-Fi only + 5G only

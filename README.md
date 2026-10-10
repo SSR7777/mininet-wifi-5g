@@ -25,7 +25,7 @@ Each part has its own branch, and every branch also contains the parts before it
 | 4. Wi-Fi + 5G together, live real video | [`part4-multipath-live-video`](https://github.com/SSR7777/mininet-wifi-5g/tree/part4-multipath-live-video) | [GUIDE.md - Step 4](https://github.com/SSR7777/mininet-wifi-5g/blob/part4-multipath-live-video/GUIDE.md) |
 | 5. I-frame aware sending (I frames on 5G streams, P/B on Wi-Fi datagrams) | [`part5-iframe-aware`](https://github.com/SSR7777/mininet-wifi-5g/tree/part5-iframe-aware) | [PART5_IFRAME.md](https://github.com/SSR7777/mininet-wifi-5g/blob/part5-iframe-aware/PART5_IFRAME.md) |
 
-**[GUIDE.md](GUIDE.md) lists every step from the start, in order.**
+**[GUIDE.md](GUIDE.md) lists every step from the start, in order. [COMMANDS.md](COMMANDS.md) has every command (Mac and VM) in one place.**
 
 ## Setup (Ubuntu VM)
 

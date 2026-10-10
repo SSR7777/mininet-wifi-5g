@@ -34,6 +34,9 @@ Where each command runs:
 Paste one command at a time. If you paste several lines while `ssh` or `scp` asks for a password, the
 remaining lines run on the wrong machine.
 
+
+All commands in one list (no explanations): **[COMMANDS.md](COMMANDS.md)**.
+
 ---
 
 ## Step 0 - Set up the VM (once)
