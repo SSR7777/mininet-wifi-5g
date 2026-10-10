@@ -13,16 +13,13 @@ fi
 git config user.name  >/dev/null || { read -rp "Your name for git commits: " n;  git config --global user.name "$n"; }
 git config user.email >/dev/null || { read -rp "Your email for git commits: " e; git config --global user.email "$e"; }
 
-TRAILER="Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
-Claude-Session: https://claude.ai/code/session_01Q26dUmyqp58jnhPvfo83ko"
-
 commit_part () {            # $1 = message, rest = files
   msg="$1"; shift
   git add -- "$@"
   if git diff --cached --quiet; then
     echo "--- nothing new for: $msg"
   else
-    git commit -q -m "$msg" -m "$TRAILER" && echo "+++ committed: $msg"
+    git commit -q -m "$msg" && echo "+++ committed: $msg"
   fi
 }
 

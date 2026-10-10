@@ -12,9 +12,6 @@ if ! git rev-parse -q --verify part4-multipath-live-video >/dev/null; then
   echo "Branch part4-multipath-live-video not found - run organize_github.sh first."; exit 1
 fi
 
-TRAILER="Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
-Claude-Session: https://claude.ai/code/session_01Q26dUmyqp58jnhPvfo83ko"
-
 # Part 5 starts from Part 4 (keeps the changed files in the folder)
 if git rev-parse -q --verify part5-iframe-aware >/dev/null; then
   git checkout -q part5-iframe-aware               # run again: add the new changes on top
@@ -30,7 +27,7 @@ if git diff --cached --quiet; then
   echo "--- nothing new to commit for Part 5"
 else
   git commit -q -m "Part 5: I-frame aware sending - I/P/B frame analysis (H.264, HEVC), effect of one lost frame, I frames on 5G QUIC streams and P/B frames on Wi-Fi datagrams (Wi-Fi only, 5G only, Wi-Fi + 5G); step-by-step commands in PART5_IFRAME.md" \
-                -m "$TRAILER" && echo "+++ committed Part 5"
+                && echo "+++ committed Part 5"
 fi
 
 git branch -f main HEAD

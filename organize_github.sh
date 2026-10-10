@@ -14,9 +14,6 @@ fi
 git config user.name  >/dev/null || { read -rp "Your name for git commits: " n;  git config --global user.name "$n"; }
 git config user.email >/dev/null || { read -rp "Your email for git commits: " e; git config --global user.email "$e"; }
 
-TRAILER="Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
-Claude-Session: https://claude.ai/code/session_01Q26dUmyqp58jnhPvfo83ko"
-
 find_part () { git log --format=%H -n1 --grep="^Part $1:" HEAD; }
 P1=$(find_part 1); P2=$(find_part 2); P3=$(find_part 3)
 if [ -z "$P1" ] || [ -z "$P2" ] || [ -z "$P3" ]; then
@@ -41,7 +38,7 @@ if git diff --cached --quiet; then
   echo "--- nothing new to commit for Part 4"
 else
   git commit -q -m "Part 4: Wi-Fi + 5G together (multipath QUIC, MPTCP) and the real video sent live over picoquic, grid video for VLC; step-by-step guide" \
-                -m "$TRAILER" && echo "+++ committed Part 4"
+                && echo "+++ committed Part 4"
 fi
 
 # main = everything
