@@ -614,17 +614,18 @@ DG_SLOT = 1000          # video bytes per QUIC datagram
 DG_MAX_RATE = 250       # datagrams per second per datagram stream (quicperf limit 255)
 
 
-def video_scenario(qmode, size, secs, fps=30):
+def video_scenario(qmode, size, secs, fps=30, slot=None):
     """quicperf scenario that carries `size` bytes of video in `secs` seconds (live pace)."""
     import math
+    slot = slot or DG_SLOT
     if qmode == "stream":
         n = max(1, int(round(fps * secs)))
         return f"=video:s{fps}:n{n}:{math.ceil(size / n) + 8};", 1, n
-    pieces = math.ceil(size / DG_SLOT)
+    pieces = math.ceil(size / slot)
     ns = max(1, math.ceil(pieces / secs / DG_MAX_RATE))
     per = math.ceil(pieces / ns)
     freq = math.ceil(per / secs)
-    sc = "".join(f"=dg{chr(65 + k)}:d{freq}:n{per}:{DG_SLOT + 24};" for k in range(ns))
+    sc = "".join(f"=dg{chr(65 + k)}:d{freq}:n{per}:{slot + 24};" for k in range(ns))
     return sc, ns, pieces
 
 

@@ -9,6 +9,8 @@ video_results/
 quic_results/
 live_results/
 players_results/
+iframe_results/
+demo/
 # video files
 *.webm
 *.mp4

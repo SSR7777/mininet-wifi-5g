@@ -3,7 +3,7 @@
 A client (`sta1`) with two access paths, **Wi-Fi** and **emulated 5G**, to one server (`srv`), built with
 [Mininet-WiFi](https://github.com/intrig-unicamp/mininet-wifi). All network values are in `config.ini`.
 
-## The project in four parts
+## The project in five parts
 
 | Part | What it does | Main files |
 |---|---|---|
@@ -11,6 +11,7 @@ A client (`sta1`) with two access paths, **Wi-Fi** and **emulated 5G**, to one s
 | **2. Video streaming, live and not live** | Sends a real video from the sender to the receiver over each network. It measures time to send, path loss, packet loss, delay, background and picture quality, connects 1 or many video players at the receiver, and compares a live stream (UDP) with video on demand (HTTP/TCP), and the same players over picoquic (QUIC) | `video_stream.py`, `players_test.py`, `show_results.py` |
 | **3. QUIC with picoquic** | Uses [picoquic](https://github.com/private-octopus/picoquic) (QUIC over UDP) for the video: a file download (HTTP/3 over QUIC streams) and a live stream over QUIC streams and QUIC datagrams | `install_picoquic.sh`, `quic_test.py`, `quic_live.py`, `show_results.py` |
 | **4. Wi-Fi + 5G together and live real video** | Uses both paths at once (multipath QUIC, MPTCP), sends the real video live over picoquic on Wi-Fi, 5G and Wi-Fi + 5G, and shows every result in one grid video (VLC) | `players_test.py`, `patch_quicperf_video.py`, `make_grid.py`, `show_results.py` |
+| **5. I-frame aware sending** | Analyses the I, P and B frames (H.264 and HEVC), measures what one lost frame does, and sends the video over Wi-Fi only, 5G only and Wi-Fi + 5G: I frames as a reliable QUIC stream / P/B as datagrams, and I frames over 5G with P/B frames over Wi-Fi | `iframe_test.py`, `show_results.py` |
 
 Every part has its own branch (`part1-wifi-5g-comparison`, `part2-video-streaming`, `part3-picoquic`, `part4-multipath-live-video`); `main` has everything. **[GUIDE.md](GUIDE.md) lists every step from the start, in order.**
 
@@ -47,6 +48,11 @@ python3 show_results.py --one                      # Wi-Fi vs 5G, all QUIC tests
 sudo python3 players_test.py --video BBB.webm --mode video   # Wi-Fi, 5G, Wi-Fi + 5G
 python3 show_results.py --video                    # table
 python3 make_grid.py                               # all videos in one grid -> players_results/livevideo_grid.mp4
+
+# Part 5 - I-frame aware sending (frame dependency -> path assignment)
+sudo python3 iframe_test.py --video BBB.webm       # H.264 + HEVC, 3 ways of sending
+python3 show_results.py --iframe                   # tables again; videos: iframe_results/iframe_grid_<codec>.mp4
+# every step and command of Part 5: PART5_IFRAME.md
 ```
 
 ---

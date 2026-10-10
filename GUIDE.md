@@ -9,10 +9,11 @@ and every branch also contains the parts before it:
 | `part2-video-streaming` | A real video sent to the receiver: time to send, path loss, packet loss, delay, background, picture quality; video players, live (UDP) and not live (HTTP/TCP) | part 1 |
 | `part3-picoquic` | QUIC with picoquic: file download (HTTP/3) and live stream over QUIC streams / datagrams; video players over QUIC | part 2 |
 | `part4-multipath-live-video` | Wi-Fi + 5G together (multipath QUIC, MPTCP); the real video sent live over picoquic; one grid video to compare everything (VLC) | part 3 |
-| `main` | Everything (same as part 4) | |
+| `part5-iframe-aware` | I/P/B frame analysis (H.264, HEVC); I frames over 5G, P/B frames over Wi-Fi | part 4 |
+| `main` | Everything | |
 
 ```
-part1 ──► part2 ──► part3 ──► part4 = main
+part1 ──► part2 ──► part3 ──► part4 ──► part5 = main
 ```
 
 To look at one part only:
@@ -178,6 +179,58 @@ Streams:       ...   |  ...  | .. |    ...       <- lost packets resent: clean p
 
 Other files: `livevideo_dgram_compare.mp4`, `livevideo_stream_compare.mp4` (2 x 2 per mode) and
 `livevideo_<mode>_<network>/live.ts` (exactly what the player received; plays in VLC).
+
+---
+
+## Step 5 - I-frame aware sending (`part5-iframe-aware`)
+
+All commands, results and explanations of this part: **[PART5_IFRAME.md](PART5_IFRAME.md)**.
+
+A compressed video has **I frames** (complete pictures), **P frames** (changes from an earlier frame)
+and **B frames** (changes from an earlier and a later frame). A **GOP** starts with an I frame and every
+P/B frame of the GOP depends on it, so **if the I frame is lost the whole GOP is lost**.
+
+```
+ GOP 1                 GOP 2                 GOP 3
+[I B B P B B P ...]   [I B B P B B P ...]   [I B B P ...]
+ ^ every frame of the GOP needs this I frame
+```
+
+```bash
+sudo python3 iframe_test.py --video BBB.webm      # H.264 and HEVC (about 10 min)
+python3 show_results.py --iframe
+```
+
+What it does:
+
+1. **Frame analysis** - encodes the video with H.264 and HEVC (one I frame per second, 3 B frames) and
+   counts the I / P / B frames, their sizes and the GOP length.
+2. **What one lost frame does** - drops one I, one P and one B frame and counts the damaged frames.
+3. **Frame-aware path assignment** (live, picoquic, both paths with 60 % background):
+
+| Network | Case | I frames | P/B frames |
+|---|---|---|---|
+| Wi-Fi only | no frame awareness | Wi-Fi datagrams | Wi-Fi datagrams |
+| Wi-Fi only | I stream + P/B dgram | Wi-Fi QUIC **stream** (resent) | Wi-Fi datagrams |
+| 5G only | no frame awareness | 5G datagrams | 5G datagrams |
+| 5G only | I stream + P/B dgram | 5G QUIC **stream** (resent) | 5G datagrams |
+| Wi-Fi + 5G | reference, no frame awareness | both paths (multipath QUIC) | both paths |
+| Wi-Fi + 5G | (1) fixed | **5G**, datagrams | **Wi-Fi**, datagrams |
+| Wi-Fi + 5G | (3) combination | **5G**, QUIC **stream** | **Wi-Fi**, datagrams |
+
+Only some cases: `--scenarios single` (Wi-Fi only + 5G only), `--scenarios multi` (Wi-Fi + 5G), or a list
+such as `--scenarios wifi,5g`. Results of cases not run again are kept.
+
+The video (MPEG-TS) is split packet by packet into an I-frame part and a P/B part, each part is sent on
+its own picoquic connection over its own path, and the receiver puts every byte back in place. A frame
+can be shown only if all its bytes arrived within the buffer **and** every frame it depends on can be shown.
+
+Watch every case side by side (one grid video per codec):
+
+```bash
+scp 'siddhartha@192.168.252.4:~/mininet-wifi-5g/iframe_results/iframe_grid_*.mp4' ~/Downloads/     # on the Mac
+open -a VLC ~/Downloads/iframe_grid_h264.mp4
+```
 
 ---
 

@@ -776,6 +776,125 @@ def show_livevideo(d):
     return True
 
 
+def show_iframe(d):
+    """Part 5: frame analysis and I-frame aware sending over Wi-Fi + 5G."""
+    num = _pnum
+    F = read_csv(os.path.join(d, "iframe_frames.csv"))
+    R = read_csv(os.path.join(d, "iframe_summary.csv"))
+    if not F and not R:
+        print(f"No results in {d}/ - run: sudo python3 iframe_test.py --video BBB.webm")
+        return False
+    CL = {"h264": "H.264", "hevc": "HEVC (H.265)"}
+    SL = {"wifi": "Wi-Fi, no frame awareness", "wifi_combo": "Wi-Fi: I stream + P/B dgram",
+          "5g": "5G, no frame awareness", "5g_combo": "5G: I stream + P/B dgram",
+          "ref": "Wi-Fi + 5G, no frame awareness", "fixed": "(1) I -> 5G, P/B -> Wi-Fi",
+          "combo": "(3) I -> 5G stream, P/B -> Wi-Fi dgram"}
+    codecs = [r["codec"] for r in F] or sorted({r["codec"] for r in R})
+    if F:
+        g = {r["codec"]: r for r in F}
+        rows = [
+            ["Frames in the video", *[g[c]["frames"] for c in codecs]],
+            ["GOP length (frames from one I frame to the next)", *[num(g[c]["gop_frames"], 0) for c in codecs]],
+            None,
+            ["I frames: count", *[g[c]["i_count"] for c in codecs]],
+            ["I frames: average / largest size", *[f"{num(g[c]['i_avg_kb'], 1)} / {num(g[c]['i_max_kb'], 1)} kB" for c in codecs]],
+            ["I frames: share of all bytes", *[num(g[c]["i_bytes_pct"], 1, " %") for c in codecs]],
+            None,
+            ["P frames: count", *[g[c]["p_count"] for c in codecs]],
+            ["P frames: average size", *[num(g[c]["p_avg_kb"], 1, " kB") for c in codecs]],
+            ["P frames: share of all bytes", *[num(g[c]["p_bytes_pct"], 1, " %") for c in codecs]],
+            None,
+            ["B frames: count", *[g[c]["b_count"] for c in codecs]],
+            ["B frames: average size", *[num(g[c]["b_avg_kb"], 1, " kB") for c in codecs]],
+            ["B frames: share of all bytes", *[num(g[c]["b_bytes_pct"], 1, " %") for c in codecs]],
+            None,
+            ["An I frame is ... times bigger than a P frame", *[num(g[c]["i_vs_p"], 1, " x") for c in codecs]],
+            ["Video file (MPEG-TS) / I part / P+B part", *[f"{num(g[c]['file_mb'], 1)} / {num(g[c]['part_i_mb'], 1)} / "
+                                                         f"{num(g[c]['part_pb_mb'], 1)} MB" for c in codecs]],
+        ]
+        table("1. FRAME ANALYSIS - I, P and B frames of the encoded video",
+              ["Measurement", *[CL.get(c, c) for c in codecs]], rows)
+        rows = []
+        for t, lab in (("i", "One I frame lost"), ("p", "One P frame lost"), ("b", "One B frame lost")):
+            rows.append([lab, *[f"{g[c]['lose_' + t + '_damaged'] or '-'} frames  ({num(g[c]['lose_' + t + '_s'], 2)} s)"
+                                for c in codecs]])
+        table("2. WHAT ONE LOST FRAME DOES (frames of the decoded video that are damaged)",
+              ["Lost frame", *[CL.get(c, c) for c in codecs]], rows)
+        print("  I frame lost = the rest of its GOP cannot be decoded (everything until the next I frame).\n"
+              "  P frame lost = the frames after it in the GOP are damaged.\n"
+              "  B frame lost = only itself, unless other frames use that B frame as a reference (HEVC and\n"
+              "  H.264 with B-pyramid use some B frames as references, then the damage spreads too).")
+    GROUPS = [("wifi", "WI-FI ONLY", ["wifi", "wifi_combo"]),
+              ("5g", "5G ONLY", ["5g", "5g_combo"]),
+              ("multi", "WI-FI + 5G", ["ref", "fixed", "combo"])]
+    HOW = {"wifi": "whole video: Wi-Fi dgram", "wifi_combo": "I: Wi-Fi stream | P/B: Wi-Fi dgram",
+           "5g": "whole video: 5G dgram", "5g_combo": "I: 5G stream | P/B: 5G dgram",
+           "ref": "both paths, no frame awareness", "fixed": "I: 5G dgram | P/B: Wi-Fi dgram",
+           "combo": "I: 5G stream | P/B: Wi-Fi dgram"}
+    SPLIT = {"wifi_combo", "5g_combo", "fixed", "combo"}
+    n_table = 3
+    for c in codecs:
+        for gkey, gname, members in GROUPS:
+            g = {r["scenario"]: r for r in R if r["codec"] == c and r["scenario"] in members}
+            sc = [s for s in members if s in g]
+            if not sc:
+                continue
+            frac = lambda r, a, b: f"{r[a]} / {r[b]}"
+            lp = lambda r, s: (f"{num(r.get('loss_i_pct'), 2)} / {num(r.get('loss_pb_pct'), 2)} %" if s in SPLIT
+                               else f"{num(r.get('loss_i_pct'), 2)} %")
+            rp = lambda r, s: (f"{num(r.get('resent_i_pct'), 2)} / {num(r.get('resent_pb_pct'), 2)} %" if s in SPLIT
+                               else f"{num(r.get('resent_i_pct'), 2)} %")
+            rows = [
+                ["How the frames are sent", *[HOW[s] for s in sc]],
+                None,
+                ["FRAMES THAT ARRIVED IN TIME (complete)", *[""] * len(sc)],
+                ["  I frames", *[frac(g[s], "i_complete", "i_total") for s in sc]],
+                ["  P frames", *[frac(g[s], "p_complete", "p_total") for s in sc]],
+                ["  B frames", *[frac(g[s], "b_complete", "b_total") for s in sc]],
+                ["  GOPs lost (I frame missing)", *[frac(g[s], "gops_lost", "gops") for s in sc]],
+                None,
+                ["WHAT THE VIEWER SEES", *[""] * len(sc)],
+                ["  Frames that can be shown (frame dependency)", *[frac(g[s], "frames_shown_model", "frames") for s in sc]],
+                ["  Frames damaged (measured on the decoded video)", *[frac(g[s], "frames_damaged", "frames_total") for s in sc]],
+                ["  Picture vs original (PSNR)", *[num(g[s]["psnr_db"], 1, " dB") for s in sc]],
+                ["  Picture similarity (SSIM, 1 = same)", *[num(g[s]["ssim"], 3) for s in sc]],
+                None,
+                ["DELAY", *[""] * len(sc)],
+                ["  All video bytes: average / 95 %", *[f"{num(g[s]['delay_avg_ms'], 1)} / {num(g[s]['delay_p95_ms'], 1)} ms" for s in sc]],
+                ["  I frames: average / 95 %", *[f"{num(g[s]['delay_i_ms'], 1)} / {num(g[s]['delay_i_p95_ms'], 1)} ms"
+                                                if g[s].get("delay_i_ms") else "-" for s in sc]],
+                ["  P/B frames: average", *[num(g[s]["delay_pb_ms"], 1, " ms") if g[s].get("delay_pb_ms") else "-" for s in sc]],
+                ["  Video bytes in time (< buffer)", *[num(g[s]["bytes_on_time_pct"], 2, " %") for s in sc]],
+                None,
+                ["NETWORK", *[""] * len(sc)],
+                ["  Packet loss (I part / P/B part)", *[lp(g[s], s) for s in sc]],
+                ["  Packets resent by QUIC (I part / P/B part)", *[rp(g[s], s) for s in sc]],
+                ["  Video over Wi-Fi / 5G", *[f"{num(g[s]['mb_wifi'], 1)} / {num(g[s]['mb_5g'], 1)} MB" for s in sc]],
+                ["  RTT (ping) Wi-Fi / 5G", *[f"{num(g[s].get('rtt_wifi_ms'), 1)} / {num(g[s].get('rtt_5g_ms'), 1)} ms" for s in sc]],
+                ["  Background traffic", *[num(g[s]["background_mbps"], 0, " Mbit/s") for s in sc]],
+            ]
+            buf = num(g[sc[0]].get("buffer_ms"), 0)
+            table(f"{n_table}. {gname} - {CL.get(c, c)} (live, buffer {buf} ms)",
+                  ["Measurement", *[SL.get(s, s) for s in sc]], rows)
+            n_table += 1
+        # one overview row per case
+        allr = {r["scenario"]: r for r in R if r["codec"] == c}
+        order = [s for _, _, m in GROUPS for s in m if s in allr]
+        if len(order) > 1:
+            table(f"{n_table}. ALL CASES - {CL.get(c, c)} (one line per case)",
+                  ["Case", "I frames", "GOPs lost", "Frames shown", "Damaged", "PSNR", "SSIM", "Delay avg / 95 %"],
+                  [[SL.get(s, s), f"{allr[s]['i_complete']}/{allr[s]['i_total']}", allr[s]["gops_lost"],
+                    f"{allr[s]['frames_shown_model']}/{allr[s]['frames']}", f"{allr[s]['frames_damaged']}/{allr[s]['frames_total']}",
+                    num(allr[s]["psnr_db"], 1, " dB"), num(allr[s]["ssim"], 3),
+                    f"{num(allr[s]['delay_avg_ms'], 1)} / {num(allr[s]['delay_p95_ms'], 1)} ms"] for s in order])
+            n_table += 1
+    if R:
+        print("  Frames that can be shown: a frame counts only if all its bytes arrived in time AND every frame it\n"
+              "  depends on can be shown (I: itself; P: the previous I/P; B: the two previous I/P).\n"
+              f"  Watch: {os.path.abspath(d)}/iframe_grid_h264.mp4 and iframe_grid_hevc.mp4  (Original + every case)")
+    return True
+
+
 def show_three(d):
     """Wi-Fi vs 5G vs Wi-Fi + 5G (multipath), one player, every way of sending."""
     num = _pnum
@@ -853,8 +972,11 @@ if __name__ == "__main__":
     ap.add_argument("--players", action="store_true", help="video players test (players_results/)")
     ap.add_argument("--three", action="store_true", help="Wi-Fi vs 5G vs Wi-Fi + 5G only")
     ap.add_argument("--video", action="store_true", help="live real video over picoquic only")
+    ap.add_argument("--iframe", action="store_true", help="I-frame aware sending (iframe_results/)")
     a = ap.parse_args()
-    if a.video:
+    if a.iframe:
+        show_iframe(a.dir or "iframe_results")
+    elif a.video:
         if not show_livevideo(a.dir or "players_results"):
             print("No live video results - run: sudo python3 players_test.py --video BBB.webm --mode video")
     elif a.three:
