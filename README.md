@@ -13,7 +13,19 @@ A client (`sta1`) with two access paths, **Wi-Fi** and **emulated 5G**, to one s
 | **4. Wi-Fi + 5G together and live real video** | Uses both paths at once (multipath QUIC, MPTCP), sends the real video live over picoquic on Wi-Fi, 5G and Wi-Fi + 5G, and shows every result in one grid video (VLC) | `players_test.py`, `patch_quicperf_video.py`, `make_grid.py`, `show_results.py` |
 | **5. I-frame aware sending** | Analyses the I, P and B frames (H.264 and HEVC), measures what one lost frame does, and sends the video over Wi-Fi only, 5G only and Wi-Fi + 5G: I frames as a reliable QUIC stream / P/B as datagrams, and I frames over 5G with P/B frames over Wi-Fi | `iframe_test.py`, `show_results.py` |
 
-Every part has its own branch (`part1-wifi-5g-comparison`, `part2-video-streaming`, `part3-picoquic`, `part4-multipath-live-video`); `main` has everything. **[GUIDE.md](GUIDE.md) lists every step from the start, in order.**
+### Where to find each part (branches)
+
+Each part has its own branch, and every branch also contains the parts before it. **`main` has everything.**
+
+| Part | Branch | Start reading |
+|---|---|---|
+| 1. Wi-Fi vs 5G comparison | [`part1-wifi-5g-comparison`](https://github.com/SSR7777/mininet-wifi-5g/tree/part1-wifi-5g-comparison) | [README](https://github.com/SSR7777/mininet-wifi-5g/blob/part1-wifi-5g-comparison/README.md) |
+| 2. Video streaming, live and not live | [`part2-video-streaming`](https://github.com/SSR7777/mininet-wifi-5g/tree/part2-video-streaming) | [README - Part 2](https://github.com/SSR7777/mininet-wifi-5g/blob/part2-video-streaming/README.md) |
+| 3. QUIC with picoquic | [`part3-picoquic`](https://github.com/SSR7777/mininet-wifi-5g/tree/part3-picoquic) | [README - Part 3](https://github.com/SSR7777/mininet-wifi-5g/blob/part3-picoquic/README.md) |
+| 4. Wi-Fi + 5G together, live real video | [`part4-multipath-live-video`](https://github.com/SSR7777/mininet-wifi-5g/tree/part4-multipath-live-video) | [GUIDE.md - Step 4](https://github.com/SSR7777/mininet-wifi-5g/blob/part4-multipath-live-video/GUIDE.md) |
+| 5. I-frame aware sending (I frames on 5G streams, P/B on Wi-Fi datagrams) | [`part5-iframe-aware`](https://github.com/SSR7777/mininet-wifi-5g/tree/part5-iframe-aware) | [PART5_IFRAME.md](https://github.com/SSR7777/mininet-wifi-5g/blob/part5-iframe-aware/PART5_IFRAME.md) |
+
+**[GUIDE.md](GUIDE.md) lists every step from the start, in order.**
 
 ## Setup (Ubuntu VM)
 
