@@ -89,6 +89,7 @@ cd ~/mininet-wifi-5g
 sudo rm -rf iframe_results                                       # run again from scratch (new results)
 sudo python3 iframe_test.py --video BBB.webm                      # every case, H.264 + HEVC (~20 min)
 sudo python3 iframe_test.py --video BBB.webm --scenarios combo    # only: I -> 5G stream, P/B -> Wi-Fi dgram
+sudo python3 iframe_test.py --video BBB.webm --scenarios combo,tiered   # (3) vs (5): I 5G stream, P 5G dgram, B Wi-Fi dgram
 sudo python3 iframe_test.py --video BBB.webm --scenarios single   # only Wi-Fi only + 5G only
 sudo python3 iframe_test.py --video BBB.webm --scenarios multi    # only the Wi-Fi + 5G cases
 sudo python3 iframe_test.py --video BBB.webm --codecs h264        # one codec
@@ -106,11 +107,33 @@ Every case (results of cases that are not run again are kept):
 | `ref` | Wi-Fi + 5G | both paths, no frame awareness | both paths |
 | `fixed` (1) | Wi-Fi + 5G | **5G** datagrams | **Wi-Fi** datagrams |
 | `combo` (3) | Wi-Fi + 5G | **5G stream** (resent) | **Wi-Fi** datagrams |
+| `tiered` (5) | Wi-Fi + 5G | **5G stream** (resent) | P: **5G** datagrams, B: **Wi-Fi** datagrams |
 
 The receiver puts every packet back in its original place and only uses what arrived within 150 ms (live).
 A frame can be shown only if all its packets arrived **and** every frame it depends on can be shown.
 
+### Videos that show the frames (I / P / B)
+
+`frame_videos.py` writes the frame number and the frame type of the picture on screen on every tile:
+
+| File | What it shows |
+|---|---|
+| `frames_lost_one_<codec>.mp4` | Original, one I frame lost, one P frame lost, one B frame lost (2 x 2). The damage stays until the next I frame. |
+| `frames_cases_<codec>.mp4` | Original + every case. A frozen frame number = frames the viewer could not see. |
+
+```bash
+python3 frame_videos.py                     # VM, after iframe_test.py
+```
+
+In VLC: **Playback - Speed - Slower**, or press **E** to step one frame at a time.
+
 ### Watch the videos (on the Mac)
+
+```bash
+scp 'siddhartha@192.168.252.4:~/mininet-wifi-5g/iframe_results/frames_*.mp4' ~/Downloads/
+open -a VLC ~/Downloads/frames_lost_one_h264.mp4
+open -a VLC ~/Downloads/frames_cases_h264.mp4
+```
 
 ```bash
 scp 'siddhartha@192.168.252.4:~/mininet-wifi-5g/iframe_results/iframe_grid_*.mp4' ~/Downloads/
@@ -160,6 +183,30 @@ open -a VLC ~/Downloads/iframe_combo_h264.mp4
 ref = no frame awareness, (1) = I -> 5G, P/B -> Wi-Fi (datagrams), (3) = I -> 5G stream, P/B -> Wi-Fi datagrams.
 
 ---
+
+## Improvement: (5) I -> 5G stream, P -> 5G datagram, B -> Wi-Fi datagram
+
+Case (3) protects every I frame, but about 1 in 4 P frames is still lost on Wi-Fi, and every lost P
+frame breaks the rest of its GOP. Case (5) also moves the P frames to 5G (fast datagrams, 0.1 % loss),
+and leaves only the small B frames on Wi-Fi, where a loss damages little:
+
+```
+            5G    ── I frames, QUIC STREAM (resent)    ──►
+ Server     5G    ── P frames, QUIC DATAGRAM (fast)    ──►   Client
+           Wi-Fi  ── B frames, QUIC DATAGRAM (fast)    ──►
+```
+
+First test (H.264, test network with 1 % Wi-Fi / 0.1 % 5G loss, no delay):
+
+| | (3) I 5G stream, P/B Wi-Fi | (5) I 5G stream, P 5G, B Wi-Fi |
+|---|---|---|
+| I frames arrived | 20/20 | 20/20 |
+| P frames arrived | 168/220 | **218/220** |
+| Frames the viewer can see | 105/600 | **512/600** |
+| Frames damaged (measured) | 412/600 | **49/600** |
+| PSNR / SSIM | 25.9 dB / 0.970 | **38.8 dB / 0.997** |
+
+Run it in the VM for the real numbers: `sudo python3 iframe_test.py --video BBB.webm --scenarios combo,tiered`
 
 ## Questions
 

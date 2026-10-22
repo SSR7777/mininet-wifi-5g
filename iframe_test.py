@@ -25,6 +25,8 @@ This test
           ref         multipath QUIC datagrams over both paths (no frame awareness)
           fixed       (1) I frames -> 5G, P/B frames -> Wi-Fi, both QUIC datagrams
           combo       (3) I frames -> 5G with a QUIC stream, P/B frames -> Wi-Fi datagrams
+          tiered      (5) I frames -> 5G QUIC stream, P frames -> 5G datagrams,
+                          B frames -> Wi-Fi datagrams (protect what the most frames depend on)
      and measures which frames arrived in time, how many frames the viewer could
      see (frame dependency), the picture quality, delay and loss on each path.
 
@@ -55,7 +57,7 @@ import players_test as pt
 PATHS = topo.PATHS
 TSP = 188                     # MPEG-TS packet size
 SLOT = 5 * TSP                # video bytes per QUIC datagram (5 TS packets)
-PORT_I, PORT_PB = 4470, 4471
+PORT0 = 4470                  # first UDP port; one picoquic connection (lane) per port
 CODEC_LABEL = {"h264": "H.264", "hevc": "HEVC (H.265)"}
 SCEN = {
     # ---- Wi-Fi only
@@ -63,25 +65,30 @@ SCEN = {
                    "how": "whole video: Wi-Fi datagrams", "path": "wifi"},
     "wifi_combo": {"group": "wifi", "label": "Wi-Fi only: I stream + P/B datagram", "short": "Wi-Fi, I stream + P/B dgram",
                    "how": "I frames: Wi-Fi QUIC stream (resent) | P/B frames: Wi-Fi datagrams",
-                   "i_mode": "stream", "pb_mode": "dgram", "i_path": "wifi", "pb_path": "wifi"},
+                   "lanes": [("I", "I", "stream", "wifi"), ("PB", "PB", "dgram", "wifi")]},
     # ---- 5G only
     "5g":         {"group": "5g", "label": "5G only (no frame awareness)", "short": "5G, no frame awareness",
                    "how": "whole video: 5G datagrams", "path": "5g"},
     "5g_combo":   {"group": "5g", "label": "5G only: I stream + P/B datagram", "short": "5G, I stream + P/B dgram",
                    "how": "I frames: 5G QUIC stream (resent) | P/B frames: 5G datagrams",
-                   "i_mode": "stream", "pb_mode": "dgram", "i_path": "5g", "pb_path": "5g"},
+                   "lanes": [("I", "I", "stream", "5g"), ("PB", "PB", "dgram", "5g")]},
     # ---- Wi-Fi + 5G
     "ref":        {"group": "multi", "label": "Wi-Fi + 5G (no frame awareness)", "short": "Wi-Fi+5G, no frame awareness",
                    "how": "multipath QUIC datagrams, packets spread over both paths", "path": "multi"},
     "fixed":      {"group": "multi", "label": "(1) I -> 5G, P/B -> Wi-Fi", "short": "(1) I->5G, P/B->Wi-Fi",
                    "how": "I frames: 5G datagrams | P/B frames: Wi-Fi datagrams",
-                   "i_mode": "dgram", "pb_mode": "dgram", "i_path": "5g", "pb_path": "wifi"},
+                   "lanes": [("I", "I", "dgram", "5g"), ("PB", "PB", "dgram", "wifi")]},
     "combo":      {"group": "multi", "label": "(3) I -> 5G stream, P/B -> Wi-Fi datagram",
                    "short": "(3) I->5G stream, P/B->Wi-Fi dgram",
                    "how": "I frames: 5G QUIC stream (resent) | P/B frames: Wi-Fi datagrams",
-                   "i_mode": "stream", "pb_mode": "dgram", "i_path": "5g", "pb_path": "wifi"},
+                   "lanes": [("I", "I", "stream", "5g"), ("PB", "PB", "dgram", "wifi")]},
+    "tiered":     {"group": "multi", "label": "(5) I -> 5G stream, P -> 5G datagram, B -> Wi-Fi datagram",
+                   "short": "(5) I 5G stream, P 5G dgram, B Wi-Fi",
+                   "how": "I frames: 5G QUIC stream (resent) | P frames: 5G datagrams | B frames: Wi-Fi datagrams",
+                   "lanes": [("I", "I", "stream", "5g"), ("P", "P", "dgram", "5g"), ("B", "B", "dgram", "wifi")]},
 }
-ALL_SCEN = ["wifi", "wifi_combo", "5g", "5g_combo", "ref", "fixed", "combo"]
+# a lane = (name, frame types it carries, QUIC mode, path); "I" also carries the stream tables (PAT/PMT)
+ALL_SCEN = ["wifi", "wifi_combo", "5g", "5g_combo", "ref", "fixed", "combo", "tiered"]
 PATH_LABEL = {"wifi": "Wi-Fi", "5g": "5G", "multi": "Wi-Fi + 5G"}
 
 
@@ -119,7 +126,8 @@ def frame_list(ts):
 
 
 def split_ts(ts, frames, i_file, pb_file):
-    """Give every TS packet to the I part or the P/B part. Returns (maps, owner of each packet)."""
+    """Give every TS packet to the I part or the P/B part, and also write the P-only and B-only
+    parts. Returns (maps, owner of each packet); maps has the keys I, PB, P, B."""
     data = open(ts, "rb").read()
     n = len(data) // TSP
     start = {f["pos"]: k for k, f in enumerate(frames)}
@@ -129,8 +137,10 @@ def split_ts(ts, frames, i_file, pb_file):
         vpid = ((b[1] & 0x1F) << 8) | b[2]
     owner = [-1] * n                       # -1 = not video (PAT/PMT/...)
     cur = -1
-    maps = {"I": [], "PB": []}
-    with open(i_file, "wb") as fi, open(pb_file, "wb") as fp:
+    maps = {"I": [], "PB": [], "P": [], "B": []}
+    d = os.path.dirname(i_file)
+    with open(i_file, "wb") as fi, open(pb_file, "wb") as fp, \
+            open(os.path.join(d, "part_P.ts"), "wb") as fpp, open(os.path.join(d, "part_B.ts"), "wb") as fb:
         for k in range(n):
             p = data[k * TSP:(k + 1) * TSP]
             pid = ((p[1] & 0x1F) << 8) | p[2]
@@ -140,9 +150,16 @@ def split_ts(ts, frames, i_file, pb_file):
                 owner[k] = cur
                 if cur >= 0:
                     frames[cur]["packets"].append(k)
-            part = "I" if owner[k] < 0 or frames[owner[k]]["type"] == "I" else "PB"
-            maps[part].append(k)
-            (fi if part == "I" else fp).write(p)
+            t = "I" if owner[k] < 0 or frames[owner[k]]["type"] == "I" else \
+                ("B" if frames[owner[k]]["type"] == "B" else "P")
+            if t == "I":
+                maps["I"].append(k)
+                fi.write(p)
+            else:
+                maps["PB"].append(k)
+                fp.write(p)
+                maps[t].append(k)
+                (fb if t == "B" else fpp).write(p)
     return maps, owner
 
 
@@ -311,49 +328,66 @@ def send_part(sta1, srv, pq, sub, part_file, mode, path, port, secs):
 
 
 def run_split(net, sc, pq, d, ts, frames, maps, original, secs, background, bg_share, buffer_ms):
+    """Each lane (a group of frame types) is sent on its own picoquic connection, over its own
+    path and in its own QUIC mode; the receiver puts all the pieces back together."""
     sta1, srv = net.get("sta1"), net.get("srv")
     sub = os.path.join(d, sc)
     shutil.rmtree(sub, ignore_errors=True)
     os.makedirs(sub)
     S = SCEN[sc]
+    lanes = [(name, types, mode, path, PORT0 + k) for k, (name, types, mode, path) in enumerate(S["lanes"])]
     info(f"\n========== {S['label']}  ({S['how']}) ==========\n")
-    for port in (PORT_I, PORT_PB):
+    for *_, port in lanes:
         pt.iface_rules(srv, "udp", port)
         sta1.cmd(f"iptables -w -I OUTPUT -p udp --sport {port}")
         srv.cmd(f"iptables -w -I INPUT -p udp --sport {port}")
-    net_n = S["i_path"] if S["i_path"] == S["pb_path"] else "multi"
+    paths = {path for _, _, _, path, _ in lanes}
+    net_n = paths.pop() if len(paths) == 1 else "multi"
     if background:
         pt.bg_start_all(sta1, srv, net_n, bg_share, sub)
     pt.ping_all(sta1, net_n, sub, int(secs) + 20)
     time.sleep(2)
     t0 = time.time()
-    pid_i = send_part(sta1, srv, pq, f"{sub}/I", f"{d}/part_I.ts", S["i_mode"], S["i_path"], PORT_I, secs)
-    pid_pb = send_part(sta1, srv, pq, f"{sub}/PB", f"{d}/part_PB.ts", S["pb_mode"], S["pb_path"], PORT_PB, secs)
-    info(f"*** I frames ({os.path.getsize(d + '/part_I.ts')/1e6:.1f} MB) over {PATH_LABEL[S['i_path']]} "
-         f"{'QUIC stream' if S['i_mode'] == 'stream' else 'QUIC datagrams'}, P/B frames "
-         f"({os.path.getsize(d + '/part_PB.ts')/1e6:.1f} MB) over {PATH_LABEL[S['pb_path']]} "
-         f"{'QUIC stream' if S['pb_mode'] == 'stream' else 'QUIC datagrams'}, live, {secs:g} s\n")
-    while time.time() - t0 < secs + 45 and not (os.path.exists(f"{sub}/I/done") and os.path.exists(f"{sub}/PB/done")):
+    pids = []
+    for name, types, mode, path, port in lanes:
+        pids.append(send_part(sta1, srv, pq, f"{sub}/{name}", f"{d}/part_{types}.ts", mode, path, port, secs))
+    info("*** " + ", ".join(f"{'P/B' if t == 'PB' else t} frames ({os.path.getsize(f'{d}/part_{t}.ts')/1e6:.1f} MB) "
+                             f"over {PATH_LABEL[p]} {'QUIC stream' if m == 'stream' else 'QUIC datagrams'}"
+                             for _, t, m, p, _ in lanes) + f", live, {secs:g} s\n")
+    while time.time() - t0 < secs + 45 and not all(os.path.exists(f"{sub}/{n}/done") for n, *_ in lanes):
         time.sleep(0.5)
     bg = pt.stop_bg(sub) if background else 0.0
-    pt.stop_pq_server(sta1, pid_i)
-    pt.stop_pq_server(sta1, pid_pb)
+    for pid in pids:
+        pt.stop_pq_server(sta1, pid)
     srv.cmd("pkill -9 iperf3")
     sta1.cmd("pkill -9 iperf3; pkill -9 ping")
-    run = {"codec": None, "scenario": sc, "bg_mbps": bg, "frames": frames}
-    for port, tag in ((PORT_I, "i"), (PORT_PB, "pb")):
+    run = {"codec": None, "scenario": sc, "bg_mbps": bg, "frames": frames, "lanes": {}}
+    for name, types, mode, path, port in lanes:
         tx = pt.qt_counter(sta1, "OUTPUT", port)
         rx = pt.qt_counter(srv, "INPUT", port)
         sta1.cmd(f"iptables -w -D OUTPUT -p udp --sport {port}")
         srv.cmd(f"iptables -w -D INPUT -p udp --sport {port}")
-        run[f"loss_{tag}"] = 100.0 * max(0, tx[0] - rx[0]) / tx[0] if tx[0] else None
         w, g, _ = pt.iface_share(srv, port)
         pt.iface_rules(srv, "udp", port, add=False)
-        run[f"mb_wifi_{tag}"], run[f"mb_5g_{tag}"] = w / 1e6, g / 1e6
-        run[f"resent_{tag}"] = pt.server_retrans(f"{sub}/{'I' if tag == 'i' else 'PB'}")[0]
+        run["lanes"][name] = {"tx": tx[0], "rx": rx[0], "mb_wifi": w / 1e6, "mb_5g": g / 1e6,
+                              "resent": pt.server_retrans(f"{sub}/{name}")[0],
+                              "loss": 100.0 * max(0, tx[0] - rx[0]) / tx[0] if tx[0] else None}
+    L = run["lanes"]
+    others = [n for n, *_ in lanes if n != "I"]                  # everything that is not the I lane
+    tx_o = sum(L[n]["tx"] for n in others)
+    rx_o = sum(L[n]["rx"] for n in others)
+    run["loss_i"], run["resent_i"] = L["I"]["loss"], L["I"]["resent"]
+    run["loss_pb"] = 100.0 * max(0, tx_o - rx_o) / tx_o if tx_o else None
+    run["resent_pb"] = pt.mean([L[n]["resent"] for n in others])
+    run["loss_p"] = L["P"]["loss"] if "P" in L else None
+    run["loss_b"] = L["B"]["loss"] if "B" in L else None
+    run["mb_wifi_i"] = sum(x["mb_wifi"] for x in L.values())
+    run["mb_5g_i"] = sum(x["mb_5g"] for x in L.values())
+    run["mb_wifi_pb"] = run["mb_5g_pb"] = 0.0
     rtts(run, sub, net_n)
-    parts = [(f"{sub}/I/received_all.ts", f"{sub}/I/pieces.csv", maps["I"]),
-             (f"{sub}/PB/received_all.ts", f"{sub}/PB/pieces.csv", maps["PB"])]
+    parts = [(f"{sub}/{name}/received_all.ts", f"{sub}/{name}/pieces.csv", maps[types])
+             for name, types, *_ in lanes]
+    run["lane_names"] = [n for n, *_ in lanes]
     return finish(run, parts, ts, original, sub, buffer_ms)
 
 
@@ -392,7 +426,10 @@ def finish(run, parts, ts, original, sub, buffer_ms):
     run["delay_p95"] = pt.pctl(ds, 95) if ds else None
     run["delay_i"] = pt.mean(st[0]["delays"]) if len(st) > 1 else None
     run["delay_i_p95"] = pt.pctl(sorted(st[0]["delays"]), 95) if len(st) > 1 and st[0]["delays"] else None
-    run["delay_pb"] = pt.mean(st[1]["delays"]) if len(st) > 1 else None
+    run["delay_pb"] = pt.mean([x for s_ in st[1:] for x in s_["delays"]]) if len(st) > 1 else None
+    names = run.get("lane_names", [])
+    run["delay_p"] = pt.mean(st[names.index("P")]["delays"]) if "P" in names else None
+    run["delay_b"] = pt.mean(st[names.index("B")]["delays"]) if "B" in names else None
     run["ontime_pct"] = 100.0 * sum(s["ontime"] for s in st) / max(1, sum(s["size"] for s in st))
     pt.watchable(f"{sub}/live.ts", f"{sub}/live.mp4")
     run["psnr"], run["ssim"] = vs.quality(f"{sub}/live.ts", original)
@@ -431,7 +468,7 @@ def grid(d, c, out):
         fc += f"[{k}:v]setpts=PTS-STARTPTS,fps=30,scale={w}:{h}{draw}[t{k}];"
         tiles.append((f"[t{k}]", (k % per_row) * w, (k // per_row) * h))
     fc += "".join(t for t, _, _ in tiles) + \
-        f"xstack=inputs={len(tiles)}:layout={'|'.join(f'{x}_{y}' for _, x, y in tiles)}:shortest=1:fill=black"
+        f"xstack=inputs={len(tiles)}:layout={'|'.join(f'{x}_{y}' for _, x, y in tiles)}:fill=black"
     r = vs.sh("ffmpeg -y -loglevel error " + " ".join(f"-i '{f}'" for f in ins) +
               f" -filter_complex \"{fc}\" -an -c:v libx264 -preset veryfast -crf 23 -pix_fmt yuv420p '{out}'")
     return out if r.returncode == 0 else None
@@ -473,7 +510,7 @@ def save(d, analysis, runs, buffer_ms):
                     "frames_total", "psnr_db", "ssim", "bytes_on_time_pct", "delay_avg_ms", "delay_p95_ms",
                     "delay_i_ms", "delay_i_p95_ms", "delay_pb_ms", "loss_i_pct", "loss_pb_pct",
                     "resent_i_pct", "resent_pb_pct", "mb_wifi", "mb_5g", "rtt_wifi_ms", "rtt_5g_ms",
-                    "background_mbps", "buffer_ms"]
+                    "background_mbps", "buffer_ms", "loss_p_pct", "loss_b_pct", "delay_p_ms", "delay_b_ms"]
         w.writerow(hdr)
         for r in old:
             w.writerow([r.get(k, "") for k in hdr])
@@ -486,7 +523,8 @@ def save(d, analysis, runs, buffer_ms):
                         f(r["loss_i"]), f(r["loss_pb"]), f(r["resent_i"]), f(r["resent_pb"]),
                         f((r.get("mb_wifi_i") or 0) + (r.get("mb_wifi_pb") or 0)),
                         f((r.get("mb_5g_i") or 0) + (r.get("mb_5g_pb") or 0)),
-                        f(r["rtt_wifi"], 1), f(r["rtt_5g"], 1), f(r["bg_mbps"], 1), f(float(buffer_ms), 0)])
+                        f(r["rtt_wifi"], 1), f(r["rtt_5g"], 1), f(r["bg_mbps"], 1), f(float(buffer_ms), 0),
+                        f(r.get("loss_p")), f(r.get("loss_b")), f(r.get("delay_p"), 1), f(r.get("delay_b"), 1)])
 
 
 # ---------------------------------------------------------------------------

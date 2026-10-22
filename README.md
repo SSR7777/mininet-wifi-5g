@@ -3,7 +3,7 @@
 A client (`sta1`) with two access paths, **Wi-Fi** and **emulated 5G**, to one server (`srv`), built with
 [Mininet-WiFi](https://github.com/intrig-unicamp/mininet-wifi). All network values are in `config.ini`.
 
-## The project in five parts
+## The project in seven parts
 
 | Part | What it does | Main files |
 |---|---|---|
@@ -12,6 +12,8 @@ A client (`sta1`) with two access paths, **Wi-Fi** and **emulated 5G**, to one s
 | **3. QUIC with picoquic** | Uses [picoquic](https://github.com/private-octopus/picoquic) (QUIC over UDP) for the video: a file download (HTTP/3 over QUIC streams) and a live stream over QUIC streams and QUIC datagrams | `install_picoquic.sh`, `quic_test.py`, `quic_live.py`, `show_results.py` |
 | **4. Wi-Fi + 5G together and live real video** | Uses both paths at once (multipath QUIC, MPTCP), sends the real video live over picoquic on Wi-Fi, 5G and Wi-Fi + 5G, and shows every result in one grid video (VLC) | `players_test.py`, `patch_quicperf_video.py`, `make_grid.py`, `show_results.py` |
 | **5. I-frame aware sending** | Analyses the I, P and B frames (H.264 and HEVC), measures what one lost frame does, and sends the video over Wi-Fi only, 5G only and Wi-Fi + 5G: I frames as a reliable QUIC stream / P/B as datagrams, and I frames over 5G with P/B frames over Wi-Fi | `iframe_test.py`, `show_results.py` |
+| **6. Adaptive switching** | When the main path (5G or Wi-Fi) gets weak, only the I frames stay on its QUIC stream and the P/B frames move to the other path as datagrams; compared with no adaptation | `adaptive_test.py`, `show_results.py` |
+| **7. Long video, changing signal** | A 15-minute video in 20 s segments while 5G (up to 700 Mbit/s) and Wi-Fi (up to 500 Mbit/s) rise and fall: I frames on the better path's QUIC stream, P/B frames on the worse path's datagrams; compared with I always on 5G | `long_video_test.py`, `show_results.py --long` |
 
 ### Where to find each part (branches)
 

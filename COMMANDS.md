@@ -139,6 +139,7 @@ sudo python3 iframe_test.py --video BBB.webm --analyse-only       # only frame a
 sudo python3 iframe_test.py --video BBB.webm --scenarios single   # Wi-Fi only + 5G only
 sudo python3 iframe_test.py --video BBB.webm --scenarios multi    # Wi-Fi + 5G cases
 sudo python3 iframe_test.py --video BBB.webm --scenarios combo    # I -> 5G stream, P/B -> Wi-Fi datagrams
+sudo python3 iframe_test.py --video BBB.webm --scenarios tiered   # I -> 5G stream, P -> 5G dgram, B -> Wi-Fi dgram
 sudo python3 iframe_test.py --video BBB.webm --codecs h264        # one codec
 ```
 
@@ -154,13 +155,84 @@ cd ..
 exit
 ```
 
+Videos that show the frame number and frame type (I / P / B) on every tile:
+```bash
+python3 frame_videos.py                           # iframe_results/frames_lost_one_<codec>.mp4, frames_cases_<codec>.mp4
+```
+
 **Mac** - watch in VLC
 ```bash
+scp 'siddhartha@192.168.252.4:~/mininet-wifi-5g/iframe_results/frames_*.mp4' ~/Downloads/
+open -a VLC ~/Downloads/frames_lost_one_h264.mp4    # Original | one I lost | one P lost | one B lost
+open -a VLC ~/Downloads/frames_cases_h264.mp4       # Original + every case
 scp 'siddhartha@192.168.252.4:~/mininet-wifi-5g/iframe_results/iframe_grid_*.mp4' ~/Downloads/
 open -a VLC ~/Downloads/iframe_grid_h264.mp4
 open -a VLC ~/Downloads/iframe_grid_hevc.mp4
 scp 'siddhartha@192.168.252.4:~/mininet-wifi-5g/iframe_results/h264/combo/live.mp4' ~/Downloads/iframe_combo_h264.mp4
 open -a VLC ~/Downloads/iframe_combo_h264.mp4
+```
+
+---
+
+## Part 6 - Adaptive: switch when the main path gets weak
+
+Scenario A = 5G main + Wi-Fi helper, scenario B = Wi-Fi main + 5G helper. While the main path is good the
+whole video goes over it; from 5 s to 15 s its bandwidth drops to 2 Mbit/s and the adaptive sender keeps only
+the I frames on the main path's QUIC stream and moves the P/B frames to the helper path as datagrams.
+
+**VM**
+```bash
+sudo python3 adaptive_test.py --video BBB.webm                    # A and B, H.264 + HEVC (~10 min)
+sudo python3 adaptive_test.py --video BBB.webm --scenarios A --codecs h264
+sudo python3 adaptive_test.py --video BBB.webm --weak-mbps 1 --drop-at 4 --recover-at 16
+python3 show_results.py --adaptive                                # tables again
+python3 adaptive_test.py --videos-only                            # VLC videos again
+exit
+```
+
+**Mac** - watch in VLC (Original | no adaptation | adaptive, bar = main path GOOD / WEAK)
+```bash
+scp 'siddhartha@192.168.252.4:~/mininet-wifi-5g/adaptive_results/adaptive_*.mp4' ~/Downloads/
+open -a VLC ~/Downloads/adaptive_A_h264.mp4
+open -a VLC ~/Downloads/adaptive_B_h264.mp4
+```
+
+---
+
+## Part 7 - Long video: I frames on the better path, P/B on the worse path
+
+A 15-minute video is sent live while the bandwidth of both paths changes (5G up to 700 Mbit/s,
+Wi-Fi up to 500 Mbit/s, the curves cross like in the mentor's drawing). I frames only travel on a
+QUIC **stream**, P/B frames only as QUIC **datagrams**. The adaptive sender checks both links every
+second and switches **automatically**: 5G stronger -> I on the 5G stream, P/B on Wi-Fi datagrams;
+5G drops below Wi-Fi -> I on the Wi-Fi stream, P/B on 5G datagrams; 5G strong again -> back.
+"Fixed" never switches (I on 5G, P/B on Wi-Fi).
+
+| Phase (each 1/5 of the video) | 5G | Wi-Fi | Adaptive: I frames on |
+|---|---|---|---|
+| 1 | 700 | 500 | 5G stream |
+| 2 | weak | 500 | Wi-Fi stream |
+| 3 | 700 | 400 | 5G stream |
+| 4 | 600 | weak | 5G stream |
+| 5 | weak | 500 | Wi-Fi stream |
+
+**VM**
+```bash
+cd ~/mininet-wifi-5g
+sudo python3 long_video_test.py --video BBB.webm --length 120 --segment 10 --ramp 10   # quick 2-minute test (~8 min)
+sudo python3 long_video_test.py --video BBB.webm                  # full 15-minute video (about 40 min)
+sudo python3 long_video_test.py --video BBB.webm --weak-mbps 2    # weaker "weak" signal
+sudo python3 long_video_test.py --video BBB.webm --pb wifi        # P/B always on Wi-Fi datagrams
+python3 show_results.py --long                                    # tables again
+sudo python3 long_video_test.py --video-only                      # graph + VLC video again (no new test)
+exit
+```
+
+**Mac** - graph and VLC video (Original | fixed | adaptive, bar = where the I and P/B frames go)
+```bash
+scp 'siddhartha@192.168.252.4:~/mininet-wifi-5g/longvideo_results/longvideo_*' ~/Downloads/
+open ~/Downloads/longvideo_h264.png
+open -a VLC ~/Downloads/longvideo_h264.mp4
 ```
 
 ---

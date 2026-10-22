@@ -10,8 +10,10 @@ quic_results/
 live_results/
 players_results/
 iframe_results/
+adaptive_results/
 demo/
 # video files
 *.webm
 *.mp4
 *.ts
+longvideo_results/

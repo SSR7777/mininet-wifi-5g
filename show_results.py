@@ -788,7 +788,8 @@ def show_iframe(d):
     SL = {"wifi": "Wi-Fi, no frame awareness", "wifi_combo": "Wi-Fi: I stream + P/B dgram",
           "5g": "5G, no frame awareness", "5g_combo": "5G: I stream + P/B dgram",
           "ref": "Wi-Fi + 5G, no frame awareness", "fixed": "(1) I -> 5G, P/B -> Wi-Fi",
-          "combo": "(3) I -> 5G stream, P/B -> Wi-Fi dgram"}
+          "combo": "(3) I -> 5G stream, P/B -> Wi-Fi dgram",
+          "tiered": "(5) I 5G stream, P 5G dgram, B Wi-Fi dgram"}
     codecs = [r["codec"] for r in F] or sorted({r["codec"] for r in R})
     if F:
         g = {r["codec"]: r for r in F}
@@ -826,12 +827,13 @@ def show_iframe(d):
               "  H.264 with B-pyramid use some B frames as references, then the damage spreads too).")
     GROUPS = [("wifi", "WI-FI ONLY", ["wifi", "wifi_combo"]),
               ("5g", "5G ONLY", ["5g", "5g_combo"]),
-              ("multi", "WI-FI + 5G", ["ref", "fixed", "combo"])]
+              ("multi", "WI-FI + 5G", ["ref", "fixed", "combo", "tiered"])]
     HOW = {"wifi": "whole video: Wi-Fi dgram", "wifi_combo": "I: Wi-Fi stream | P/B: Wi-Fi dgram",
            "5g": "whole video: 5G dgram", "5g_combo": "I: 5G stream | P/B: 5G dgram",
            "ref": "both paths, no frame awareness", "fixed": "I: 5G dgram | P/B: Wi-Fi dgram",
-           "combo": "I: 5G stream | P/B: Wi-Fi dgram"}
-    SPLIT = {"wifi_combo", "5g_combo", "fixed", "combo"}
+           "combo": "I: 5G stream | P/B: Wi-Fi dgram",
+           "tiered": "I: 5G stream | P: 5G dgram | B: Wi-Fi dgram"}
+    SPLIT = {"wifi_combo", "5g_combo", "fixed", "combo", "tiered"}
     n_table = 3
     for c in codecs:
         for gkey, gname, members in GROUPS:
@@ -840,7 +842,9 @@ def show_iframe(d):
             if not sc:
                 continue
             frac = lambda r, a, b: f"{r[a]} / {r[b]}"
-            lp = lambda r, s: (f"{num(r.get('loss_i_pct'), 2)} / {num(r.get('loss_pb_pct'), 2)} %" if s in SPLIT
+            lp = lambda r, s: (f"{num(r.get('loss_i_pct'), 2)} / {num(r.get('loss_p_pct'), 2)} / "
+                               f"{num(r.get('loss_b_pct'), 2)} %" if r.get("loss_b_pct") else
+                               f"{num(r.get('loss_i_pct'), 2)} / {num(r.get('loss_pb_pct'), 2)} %" if s in SPLIT
                                else f"{num(r.get('loss_i_pct'), 2)} %")
             rp = lambda r, s: (f"{num(r.get('resent_i_pct'), 2)} / {num(r.get('resent_pb_pct'), 2)} %" if s in SPLIT
                                else f"{num(r.get('resent_i_pct'), 2)} %")
@@ -864,10 +868,13 @@ def show_iframe(d):
                 ["  I frames: average / 95 %", *[f"{num(g[s]['delay_i_ms'], 1)} / {num(g[s]['delay_i_p95_ms'], 1)} ms"
                                                 if g[s].get("delay_i_ms") else "-" for s in sc]],
                 ["  P/B frames: average", *[num(g[s]["delay_pb_ms"], 1, " ms") if g[s].get("delay_pb_ms") else "-" for s in sc]],
+                *([["  P frames / B frames: average", *[f"{num(g[s].get('delay_p_ms'), 1)} / {num(g[s].get('delay_b_ms'), 1)} ms"
+                                                        if g[s].get("delay_b_ms") else "-" for s in sc]]]
+                  if any(g[s].get("delay_b_ms") for s in sc) else []),
                 ["  Video bytes in time (< buffer)", *[num(g[s]["bytes_on_time_pct"], 2, " %") for s in sc]],
                 None,
                 ["NETWORK", *[""] * len(sc)],
-                ["  Packet loss (I part / P/B part)", *[lp(g[s], s) for s in sc]],
+                ["  Packet loss (I / P+B, or I / P / B)", *[lp(g[s], s) for s in sc]],
                 ["  Packets resent by QUIC (I part / P/B part)", *[rp(g[s], s) for s in sc]],
                 ["  Video over Wi-Fi / 5G", *[f"{num(g[s]['mb_wifi'], 1)} / {num(g[s]['mb_5g'], 1)} MB" for s in sc]],
                 ["  RTT (ping) Wi-Fi / 5G", *[f"{num(g[s].get('rtt_wifi_ms'), 1)} / {num(g[s].get('rtt_5g_ms'), 1)} ms" for s in sc]],
@@ -892,6 +899,199 @@ def show_iframe(d):
         print("  Frames that can be shown: a frame counts only if all its bytes arrived in time AND every frame it\n"
               "  depends on can be shown (I: itself; P: the previous I/P; B: the two previous I/P).\n"
               f"  Watch: {os.path.abspath(d)}/iframe_grid_h264.mp4 and iframe_grid_hevc.mp4  (Original + every case)")
+    return True
+
+
+def show_adaptive(d):
+    """Part 6: adaptive frame-aware sending when the main path gets weak."""
+    num = _pnum
+    R = read_csv(os.path.join(d, "adaptive_summary.csv"))
+    if not R:
+        print(f"No results in {d}/ - run: sudo python3 adaptive_test.py --video BBB.webm")
+        return False
+    CL = {"h264": "H.264", "hevc": "HEVC (H.265)"}
+    NL = {"wifi": "Wi-Fi", "5g": "5G"}
+    for c in [x for x in ("h264", "hevc") if any(r["codec"] == x for r in R)]:
+        for sc in ("A", "B"):
+            g = {r["variant"]: r for r in R if r["codec"] == c and r["scenario"] == sc}
+            vs_ = [v for v in ("fixed", "adaptive") if v in g]
+            if not vs_:
+                continue
+            r0 = g[vs_[0]]
+            M, H = NL.get(r0["main"], r0["main"]), NL.get(r0["helper"], r0["helper"])
+            frac = lambda r, a, b: f"{r[a]} / {r[b]}"
+            rows = [
+                ["While the main path is weak", *[f"everything stays on {M}" if v == "fixed" else
+                                                  f"I: {M} stream | P/B: {H} datagrams" for v in vs_]],
+                None,
+                ["FRAMES THAT ARRIVED IN TIME", *[""] * len(vs_)],
+                ["  I frames", *[frac(g[v], "i_complete", "i_total") for v in vs_]],
+                ["  P frames", *[frac(g[v], "p_complete", "p_total") for v in vs_]],
+                ["  B frames", *[frac(g[v], "b_complete", "b_total") for v in vs_]],
+                ["  GOPs lost (I frame missing)", *[frac(g[v], "gops_lost", "gops") for v in vs_]],
+                None,
+                ["WHAT THE VIEWER SEES", *[""] * len(vs_)],
+                ["  Frames shown - whole video", *[frac(g[v], "frames_shown", "frames") for v in vs_]],
+                ["  Frames shown - while the signal was weak", *[frac(g[v], "weak_shown", "weak_frames") for v in vs_]],
+                ["  Frames damaged (measured)", *[frac(g[v], "frames_damaged", "frames_total") for v in vs_]],
+                ["  Picture vs original (PSNR)", *[num(g[v]["psnr_db"], 1, " dB") for v in vs_]],
+                ["  Picture similarity (SSIM)", *[num(g[v]["ssim"], 3) for v in vs_]],
+                None,
+                ["DELAY", *[""] * len(vs_)],
+                ["  All video: average / 95 %", *[f"{num(g[v]['delay_avg_ms'], 1)} / {num(g[v]['delay_p95_ms'], 1)} ms" for v in vs_]],
+                ["  I frames (main stream): average", *[num(g[v]["delay_i_ms"], 1, " ms") for v in vs_]],
+                ["  Video pieces later than the buffer", *[num(g[v]["late_pct"], 2, " %") for v in vs_]],
+                None,
+                ["NETWORK", *[""] * len(vs_)],
+                ["  Video over Wi-Fi / 5G", *[f"{num(g[v]['mb_wifi'], 1)} / {num(g[v]['mb_5g'], 1)} MB" for v in vs_]],
+                ["  I frames resent by QUIC", *[num(g[v]["resent_i_pct"], 2, " %") for v in vs_]],
+            ]
+            table(f"SCENARIO {sc}: {M} MAIN, {H} HELPER - {CL.get(c, c)}  ({M} weak = {num(r0['weak_mbps'], 0)} Mbit/s "
+                  f"from {num(r0['drop_at_s'], 0)} to {num(r0['recover_at_s'], 0)} s, sender reacts after "
+                  f"{num(r0['detect_s'], 1)} s)",
+                  ["Measurement", *[("No adaptation" if v == "fixed" else "Adaptive") for v in vs_]], rows)
+    print("  Adaptive: while the main path is good the whole video goes over it; when it gets weak only the\n"
+          "  I frames stay on its QUIC stream and the P/B frames move to the helper path as datagrams.\n"
+          f"  Watch: {os.path.abspath(d)}/adaptive_<A|B>_<codec>.mp4  (Original | no adaptation | adaptive)")
+    return True
+
+
+def show_long(d):
+    """Part 7: long video, I frames on the better path's stream, P/B on the worse path's datagrams."""
+    num = _pnum
+    import glob
+    subs = [os.path.join(d, f"main_{m}") for m in ("5g", "wifi")
+            if glob.glob(os.path.join(d, f"main_{m}", "longvideo_summary_*.csv"))]
+    if subs:                                   # one folder per scenario (5G main, Wi-Fi main)
+        for x in subs:
+            show_long(x)
+        return True
+    files = sorted(glob.glob(os.path.join(d, "longvideo_summary_*.csv")))
+    if not files:
+        print(f"No results in {d}/ - run: sudo python3 long_video_test.py --video BBB.webm")
+        return False
+    CL = {"h264": "H.264", "hevc": "HEVC (H.265)"}
+    for fs in files:
+        R = read_csv(fs)
+        if not R:
+            continue
+        c = R[0]["codec"]
+        g = {r["variant"]: r for r in R}
+        vs_ = [v for v in ("fixed", "adaptive") if v in g]
+        r0 = g[vs_[0]]
+        NLm = {"5g": "5G", "wifi": "Wi-Fi"}
+        M = NLm.get(r0.get("main") or "5g", "5G")
+        H = "Wi-Fi" if M == "5G" else "5G"
+        rule = r0.get("pb_rule") or "other"
+        better = rule == "better"
+        frac = lambda r, a, b: f"{r[a]} / {r[b]}"
+        rows = [
+            ["I frames go on", *[f"{M} stream always" if v == "fixed" else f"{M} stream; {H} stream when {M} weak"
+                                 for v in vs_]],
+            ["P/B frames go on", *[(f"{M} stream always" if v == "fixed" else
+                                    f"{M} stream; better path's datagrams when {M} weak")
+                                   if rule == "streammain" else
+                                   ((f"{M} datagrams always" if better else f"{H} datagrams always") if v == "fixed"
+                                    else ("better path's datagrams" if better else "other path's datagrams"))
+                                   for v in vs_]],
+            ["Automatic switches", *[g[v]["switches"] for v in vs_]],
+            ["  at (s)", *[(g[v].get("switch_times_s") or "-") for v in vs_]],
+            None,
+            ["FRAMES THAT ARRIVED IN TIME", *[""] * len(vs_)],
+            ["  I frames", *[frac(g[v], "i_complete", "i_total") for v in vs_]],
+            ["  P frames", *[frac(g[v], "p_complete", "p_total") for v in vs_]],
+            ["  B frames", *[frac(g[v], "b_complete", "b_total") for v in vs_]],
+            ["  GOPs lost (I frame missing)", *[frac(g[v], "gops_lost", "gops") for v in vs_]],
+            None,
+            ["WHAT THE VIEWER SEES", *[""] * len(vs_)],
+            ["  Frames shown", *[frac(g[v], "frames_shown", "frames") for v in vs_]],
+            ["  Frames damaged (measured)", *[frac(g[v], "frames_damaged", "frames_total") for v in vs_]],
+            ["  Picture vs original (PSNR)", *[num(g[v]["psnr_db"], 1, " dB") for v in vs_]],
+            ["  Picture similarity (SSIM)", *[num(g[v]["ssim"], 3) for v in vs_]],
+            None,
+            ["DELAY", *[""] * len(vs_)],
+            ["  All video: average / 95 %", *[f"{num(g[v]['delay_avg_ms'], 1)} / {num(g[v]['delay_p95_ms'], 1)} ms"
+                                               for v in vs_]],
+            ["  I frames: average", *[num(g[v]["delay_i_ms"], 1, " ms") for v in vs_]],
+            ["  Video pieces later than the buffer", *[num(g[v]["late_pct"], 2, " %") for v in vs_]],
+            None,
+            ["NETWORK", *[""] * len(vs_)],
+            ["  Video over Wi-Fi / 5G", *[f"{num(g[v]['mb_wifi'], 1)} / {num(g[v]['mb_5g'], 1)} MB" for v in vs_]],
+        ]
+        wb = r0.get("weak_below_mbps")
+        table(f"SCENARIO: {M} MAIN - {CL.get(c, c)}  ({num(r0['length_s'], 0)} s, "
+              + (f"{M} weak below {wb} Mbit/s, " if wb else "") +
+              f"links checked every {num(r0.get('check_s'), 0)} s, 5G up to 700 / Wi-Fi up to 500 Mbit/s, "
+              f"weak = {num(r0['weak_mbps'], 0)} Mbit/s)",
+              ["Measurement", *[("Fixed" if v == "fixed" else "Adaptive") for v in vs_]], rows)
+        P = read_csv(os.path.join(d, f"longvideo_phases_{c}.csv"))
+        if P:
+            hdr = ["Phase", "Time (s)", "5G / Wi-Fi Mbit/s"]
+            for v in vs_:
+                n = "Fixed" if v == "fixed" else "Adaptive"
+                hdr += [f"{n}: I on", f"{n}: I ok", f"{n}: shown"]
+            rows = []
+            for ph in sorted({int(p["phase"]) for p in P}):
+                pr = {p["variant"]: p for p in P if int(p["phase"]) == ph}
+                p0 = pr[vs_[0]]
+                row = [ph, f"{p0['start_s']}-{p0['end_s']}", f"{p0['bw_5g_mbps']} / {p0['bw_wifi_mbps']}"]
+                for v in vs_:
+                    p = pr.get(v)
+                    row += [p["i_path"], f"{p['i_complete']}/{p['i_total']}", f"{p['frames_shown']}/{p['frames']}"] \
+                        if p else ["-", "-", "-"]
+                rows.append(row)
+            table(f"PER PHASE - {CL.get(c, c)}", hdr, rows)
+        S = read_csv(os.path.join(d, f"longvideo_segments_{c}.csv"))
+        if S:
+            NL = {"5g": "5G", "wifi": "Wi-Fi"}
+            mins = {}
+            for x in S:
+                m = int(float(x["start_s"]) // 60)
+                e = mins.setdefault(m, {})
+                v = e.setdefault(x["variant"], {"shown": 0, "frames": 0, "i5": 0.0, "iw": 0.0, "p5": 0.0, "pw": 0.0,
+                                                "bw": []})
+                v["p5"] += float(x.get("pb_on_5g_s") or 0)
+                v["pw"] += float(x.get("pb_on_wifi_s") or 0)
+                v["pst"] = v.get("pst", 0.0) + float(x.get("pb_stream_s") or 0)
+                v["pdg"] = v.get("pdg", 0.0) + float(x.get("pb_dgram_s") or 0)
+                v["shown"] += int(x["frames_shown"])
+                v["frames"] += int(x["frames"])
+                v["i5"] += float(x.get("i_on_5g_s") or 0)
+                v["iw"] += float(x.get("i_on_wifi_s") or 0)
+                v["bw"].append((float(x["bw_5g_mbps"]), float(x["bw_wifi_mbps"])))
+            hdr = ["Minute", "5G / Wi-Fi Mbit/s"]
+            for v in vs_:
+                n = "Fixed" if v == "fixed" else "Adaptive"
+                hdr += [f"{n}: I frames", f"{n}: P/B frames", f"{n}: frames shown"]
+            rows = []
+            for m in sorted(mins):
+                e = mins[m]
+                b = next(iter(e.values()))["bw"]
+                g5 = sum(x[0] for x in b) / len(b)
+                wf = sum(x[1] for x in b) / len(b)
+                row = [f"{m + 1:2d}  ({m}:00-{m + 1}:00)", f"{g5:.0f} / {wf:.0f}"]
+                for v in vs_:
+                    x = e.get(v)
+                    if not x:
+                        row += ["-", "-", "-"]
+                        continue
+                    on = lambda a, b: (("5G" if a >= b else "Wi-Fi") if not (a and b)
+                                       else f"5G {a:.0f}s + Wi-Fi {b:.0f}s")
+                    pb = on(x["p5"], x["pw"]) if (x["p5"] or x["pw"]) else "-"
+                    if x.get("pst") and not x.get("pdg"):
+                        pb += " stream"
+                    elif x.get("pdg") and not x.get("pst"):
+                        pb += " datagrams"
+                    elif x.get("pst"):
+                        pb += f" (stream {x['pst']:.0f}s, datagrams {x['pdg']:.0f}s)"
+                    pct = 100.0 * x["shown"] / x["frames"] if x["frames"] else 0
+                    row += [on(x["i5"], x["iw"]), pb, f"{x['shown']}/{x['frames']} ({pct:.0f} %)"]
+                rows.append(row)
+            table(f"MINUTE BY MINUTE - {CL.get(c, c)}  (bandwidth = average over the minute)", hdr, rows)
+    print("  The stream is the main way of sending. Adaptive: the sender checks the links every second; while 5G\n"
+          "  is good the whole video goes on the 5G stream; when 5G gets weak the I frames switch automatically to\n"
+          "  the Wi-Fi stream and the P/B frames go as datagrams on the better path; back when 5G is good again.\n"
+          "  No switching: the whole video stays on the 5G stream.")
     return True
 
 
@@ -973,8 +1173,14 @@ if __name__ == "__main__":
     ap.add_argument("--three", action="store_true", help="Wi-Fi vs 5G vs Wi-Fi + 5G only")
     ap.add_argument("--video", action="store_true", help="live real video over picoquic only")
     ap.add_argument("--iframe", action="store_true", help="I-frame aware sending (iframe_results/)")
+    ap.add_argument("--adaptive", action="store_true", help="adaptive switching when a path gets weak (adaptive_results/)")
+    ap.add_argument("--long", action="store_true", help="long video, I frames on the better path (longvideo_results/)")
     a = ap.parse_args()
-    if a.iframe:
+    if a.long:
+        show_long(a.dir or "longvideo_results")
+    elif a.adaptive:
+        show_adaptive(a.dir or "adaptive_results")
+    elif a.iframe:
         show_iframe(a.dir or "iframe_results")
     elif a.video:
         if not show_livevideo(a.dir or "players_results"):

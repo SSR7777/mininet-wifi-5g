@@ -1,0 +1,198 @@
+
+*** H.264: encoding a 15.0-minute video (4 Mbit/s, one I frame per second) - this takes a few minutes
+    27000 frames: I 900, P 8556, B 17544, 447 MB
+*** Creating nodes
+*** Configuring Wi-Fi nodes
+*** Creating links
+(500.00Mbit 10ms delay 1.00000% loss) *** Error: Warning: sch_htb: quantum of class 50001 is big. Consider r2q change.
+(500.00Mbit 10ms delay) *** Error: Warning: sch_htb: quantum of class 50001 is big. Consider r2q change.
+(700.00Mbit 15ms delay 0.10000% loss) *** Error: Warning: sch_htb: quantum of class 50001 is big. Consider r2q change.
+(700.00Mbit 15ms delay) *** Error: Warning: sch_htb: quantum of class 50001 is big. Consider r2q change.
+*** Starting network
+*** Starting controller(s)
+*** Starting L2 nodes
+s5g (700.00Mbit 15ms delay) *** Error: Warning: sch_htb: quantum of class 50001 is big. Consider r2q change.
+ap1 ...(700.00Mbit 15ms delay) *** Error: Warning: sch_htb: quantum of class 50001 is big. Consider r2q change.
+...
+*** Waiting for Wi-Fi association
+Connected to 02:00:00:00:01:00 (on sta1-wlan0)
+	SSID: wifi-path
+	freq: 2412.0
+	RX: 1927 bytes (35 packets)
+	TX: 775 bytes (8 packets)
+	signal: -36 dBm
+	tx bitrate: 11.0 MBit/s
+	bss flags: short-slot-time
+	dtim period: 2
+	beacon int: 100
+
+
+################ SCENARIO: 5G MAIN (Wi-Fi helper, 5G weak below 50 Mbit/s) ################
+
+######## H.264 ########
+
+========== Long video, 15.0 min - 5G main - no switching: I frames on the 5G stream, P/B as 5G datagrams ==========
+***  0:30    5G  700.0 Mbit/s  Wi-Fi  500.0 Mbit/s  -> I frames on the 5G stream, P/B as 5G datagrams
+***  1:00    5G  700.0 Mbit/s  Wi-Fi  500.0 Mbit/s  -> I frames on the 5G stream, P/B as 5G datagrams
+***  1:30    5G  700.0 Mbit/s  Wi-Fi  500.0 Mbit/s  -> I frames on the 5G stream, P/B as 5G datagrams
+***  2:00    5G  700.0 Mbit/s  Wi-Fi  500.0 Mbit/s  -> I frames on the 5G stream, P/B as 5G datagrams
+***  2:30    5G  700.0 Mbit/s  Wi-Fi  500.0 Mbit/s  -> I frames on the 5G stream, P/B as 5G datagrams
+***  3:00    5G  700.0 Mbit/s  Wi-Fi  500.0 Mbit/s  -> I frames on the 5G stream, P/B as 5G datagrams
+***  3:30    5G    5.0 Mbit/s  Wi-Fi  500.0 Mbit/s  -> I frames on the 5G stream, P/B as 5G datagrams
+***  4:00    5G    5.0 Mbit/s  Wi-Fi  500.0 Mbit/s  -> I frames on the 5G stream, P/B as 5G datagrams
+***  4:30    5G    5.0 Mbit/s  Wi-Fi  500.0 Mbit/s  -> I frames on the 5G stream, P/B as 5G datagrams
+***  5:00    5G    5.0 Mbit/s  Wi-Fi  500.0 Mbit/s  -> I frames on the 5G stream, P/B as 5G datagrams
+***  5:30    5G    5.0 Mbit/s  Wi-Fi  500.0 Mbit/s  -> I frames on the 5G stream, P/B as 5G datagrams
+***  6:00    5G    5.0 Mbit/s  Wi-Fi  500.0 Mbit/s  -> I frames on the 5G stream, P/B as 5G datagrams
+***  6:30    5G  700.0 Mbit/s  Wi-Fi  400.0 Mbit/s  -> I frames on the 5G stream, P/B as 5G datagrams
+***  7:00    5G  700.0 Mbit/s  Wi-Fi  400.0 Mbit/s  -> I frames on the 5G stream, P/B as 5G datagrams
+***  7:30    5G  700.0 Mbit/s  Wi-Fi  400.0 Mbit/s  -> I frames on the 5G stream, P/B as 5G datagrams
+***  8:00    5G  700.0 Mbit/s  Wi-Fi  400.0 Mbit/s  -> I frames on the 5G stream, P/B as 5G datagrams
+***  8:30    5G  700.0 Mbit/s  Wi-Fi  400.0 Mbit/s  -> I frames on the 5G stream, P/B as 5G datagrams
+***  9:00    5G  700.0 Mbit/s  Wi-Fi  400.0 Mbit/s  -> I frames on the 5G stream, P/B as 5G datagrams
+***  9:30    5G  600.0 Mbit/s  Wi-Fi    5.0 Mbit/s  -> I frames on the 5G stream, P/B as 5G datagrams
+*** 10:00    5G  600.0 Mbit/s  Wi-Fi    5.0 Mbit/s  -> I frames on the 5G stream, P/B as 5G datagrams
+*** 10:30    5G  600.0 Mbit/s  Wi-Fi    5.0 Mbit/s  -> I frames on the 5G stream, P/B as 5G datagrams
+*** 11:00    5G  600.0 Mbit/s  Wi-Fi    5.0 Mbit/s  -> I frames on the 5G stream, P/B as 5G datagrams
+*** 11:30    5G  600.0 Mbit/s  Wi-Fi    5.0 Mbit/s  -> I frames on the 5G stream, P/B as 5G datagrams
+*** 12:00    5G  600.0 Mbit/s  Wi-Fi    5.0 Mbit/s  -> I frames on the 5G stream, P/B as 5G datagrams
+*** 12:30    5G    5.0 Mbit/s  Wi-Fi  500.0 Mbit/s  -> I frames on the 5G stream, P/B as 5G datagrams
+*** 13:00    5G    5.0 Mbit/s  Wi-Fi  500.0 Mbit/s  -> I frames on the 5G stream, P/B as 5G datagrams
+*** 13:30    5G    5.0 Mbit/s  Wi-Fi  500.0 Mbit/s  -> I frames on the 5G stream, P/B as 5G datagrams
+*** 14:00    5G    5.0 Mbit/s  Wi-Fi  500.0 Mbit/s  -> I frames on the 5G stream, P/B as 5G datagrams
+*** 14:30    5G    5.0 Mbit/s  Wi-Fi  500.0 Mbit/s  -> I frames on the 5G stream, P/B as 5G datagrams
+    data check: 2272837/2272837 received packets correct
+    0 switches; I 848/900, P 7828/8556, B 16506/17544, GOPs lost 52; frames shown 21673/27000; PSNR 24.6 dB; delay avg 49.0 ms
+
+========== Long video, 15.0 min - 5G main - adaptive: checks the links every 1 s and switches automatically when 5G is weak ==========
+***  0:30    5G  700.0 Mbit/s  Wi-Fi  500.0 Mbit/s  -> I frames on the 5G stream, P/B as 5G datagrams
+***  1:00    5G  700.0 Mbit/s  Wi-Fi  500.0 Mbit/s  -> I frames on the 5G stream, P/B as 5G datagrams
+***  1:30    5G  700.0 Mbit/s  Wi-Fi  500.0 Mbit/s  -> I frames on the 5G stream, P/B as 5G datagrams
+***  2:00    5G  700.0 Mbit/s  Wi-Fi  500.0 Mbit/s  -> I frames on the 5G stream, P/B as 5G datagrams
+***  2:30    5G  700.0 Mbit/s  Wi-Fi  500.0 Mbit/s  -> I frames on the 5G stream, P/B as 5G datagrams
+***  3:00    5G  700.0 Mbit/s  Wi-Fi  500.0 Mbit/s  -> I frames on the 5G stream, P/B as 5G datagrams
+***  3:09.0  5G 492 / Wi-Fi 500 Mbit/s -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  3:29.0  SWITCH: 5G weak (28 Mbit/s) -> I frames on the Wi-Fi stream, P/B as Wi-Fi datagrams
+***  3:30    5G    5.0 Mbit/s  Wi-Fi  500.0 Mbit/s  -> I frames on the Wi-Fi stream, P/B as Wi-Fi datagrams
+***  4:00    5G    5.0 Mbit/s  Wi-Fi  500.0 Mbit/s  -> I frames on the Wi-Fi stream, P/B as Wi-Fi datagrams
+***  4:30    5G    5.0 Mbit/s  Wi-Fi  500.0 Mbit/s  -> I frames on the Wi-Fi stream, P/B as Wi-Fi datagrams
+***  5:00    5G    5.0 Mbit/s  Wi-Fi  500.0 Mbit/s  -> I frames on the Wi-Fi stream, P/B as Wi-Fi datagrams
+***  5:30    5G    5.0 Mbit/s  Wi-Fi  500.0 Mbit/s  -> I frames on the Wi-Fi stream, P/B as Wi-Fi datagrams
+***  6:00    5G    5.0 Mbit/s  Wi-Fi  500.0 Mbit/s  -> I frames on the Wi-Fi stream, P/B as Wi-Fi datagrams
+***  6:02.0  SWITCH: 5G good again (51 Mbit/s) -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  6:19.0  5G 445 / Wi-Fi 437 Mbit/s -> I frames on the 5G stream, P/B as 5G datagrams
+***  6:30    5G  700.0 Mbit/s  Wi-Fi  400.0 Mbit/s  -> I frames on the 5G stream, P/B as 5G datagrams
+***  7:00    5G  700.0 Mbit/s  Wi-Fi  400.0 Mbit/s  -> I frames on the 5G stream, P/B as 5G datagrams
+***  7:30    5G  700.0 Mbit/s  Wi-Fi  400.0 Mbit/s  -> I frames on the 5G stream, P/B as 5G datagrams
+***  8:00    5G  700.0 Mbit/s  Wi-Fi  400.0 Mbit/s  -> I frames on the 5G stream, P/B as 5G datagrams
+***  8:30    5G  700.0 Mbit/s  Wi-Fi  400.0 Mbit/s  -> I frames on the 5G stream, P/B as 5G datagrams
+***  9:00    5G  700.0 Mbit/s  Wi-Fi  400.0 Mbit/s  -> I frames on the 5G stream, P/B as 5G datagrams
+***  9:30    5G  600.0 Mbit/s  Wi-Fi    5.0 Mbit/s  -> I frames on the 5G stream, P/B as 5G datagrams
+*** 10:00    5G  600.0 Mbit/s  Wi-Fi    5.0 Mbit/s  -> I frames on the 5G stream, P/B as 5G datagrams
+*** 10:30    5G  600.0 Mbit/s  Wi-Fi    5.0 Mbit/s  -> I frames on the 5G stream, P/B as 5G datagrams
+*** 11:00    5G  600.0 Mbit/s  Wi-Fi    5.0 Mbit/s  -> I frames on the 5G stream, P/B as 5G datagrams
+*** 11:30    5G  600.0 Mbit/s  Wi-Fi    5.0 Mbit/s  -> I frames on the 5G stream, P/B as 5G datagrams
+*** 12:00    5G  600.0 Mbit/s  Wi-Fi    5.0 Mbit/s  -> I frames on the 5G stream, P/B as 5G datagrams
+*** 12:17.0  5G 263 / Wi-Fi 286 Mbit/s -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+*** 12:28.0  SWITCH: 5G weak (45 Mbit/s) -> I frames on the Wi-Fi stream, P/B as Wi-Fi datagrams
+*** 12:30    5G    5.0 Mbit/s  Wi-Fi  500.0 Mbit/s  -> I frames on the Wi-Fi stream, P/B as Wi-Fi datagrams
+*** 13:00    5G    5.0 Mbit/s  Wi-Fi  500.0 Mbit/s  -> I frames on the Wi-Fi stream, P/B as Wi-Fi datagrams
+*** 13:30    5G    5.0 Mbit/s  Wi-Fi  500.0 Mbit/s  -> I frames on the Wi-Fi stream, P/B as Wi-Fi datagrams
+*** 14:00    5G    5.0 Mbit/s  Wi-Fi  500.0 Mbit/s  -> I frames on the Wi-Fi stream, P/B as Wi-Fi datagrams
+*** 14:30    5G    5.0 Mbit/s  Wi-Fi  500.0 Mbit/s  -> I frames on the Wi-Fi stream, P/B as Wi-Fi datagrams
+    data check: 2373446/2373446 received packets correct
+    3 switches; I 900/900, P 7707/8556, B 17129/17544, GOPs lost 0; frames shown 18603/27000; PSNR 24.0 dB; delay avg 28.5 ms
+*** Stopping network
+*** Stopping 0 controllers
+
+*** Stopping 5 links
+.....
+*** Stopping switches/access points
+s5g ap1 
+*** Stopping nodes
+srv sta1 
+
+*** Removing WiFi module and Configurations
+*** Killing mac80211_hwsim
+
+*** Done
+*** 5G main, H.264: making the VLC video (10-20 min) ...
+
+=====================================================================================================
+ SCENARIO: 5G MAIN - H.264  (900 s, 5G weak below 50 Mbit/s, links checked every 1 s, 5G up to 700 / Wi-Fi up to 500 Mbit/s, weak = 5 Mbit/s)
+=====================================================================================================
++--------------------------------------+---------------------+--------------------------------------+
+|             Measurement              |        Fixed        |               Adaptive               |
++======================================+=====================+======================================+
+| I frames go on                       |    5G stream always | 5G stream; Wi-Fi stream when 5G weak |
+| P/B frames go on                     | 5G datagrams always |              better path's datagrams |
+| Automatic switches                   |                   0 |                                    3 |
+|   at (s)                             |                   - |                          209 362 748 |
++--------------------------------------+---------------------+--------------------------------------+
+| FRAMES THAT ARRIVED IN TIME          |                     |                                      |
+|   I frames                           |           848 / 900 |                            900 / 900 |
+|   P frames                           |         7828 / 8556 |                          7707 / 8556 |
+|   B frames                           |       16506 / 17544 |                        17129 / 17544 |
+|   GOPs lost (I frame missing)        |            52 / 900 |                              0 / 900 |
++--------------------------------------+---------------------+--------------------------------------+
+| WHAT THE VIEWER SEES                 |                     |                                      |
+|   Frames shown                       |       21673 / 27000 |                        18603 / 27000 |
+|   Frames damaged (measured)          |        4916 / 27000 |                         7269 / 27000 |
+|   Picture vs original (PSNR)         |             24.6 dB |                              24.0 dB |
+|   Picture similarity (SSIM)          |               0.959 |                                0.950 |
++--------------------------------------+---------------------+--------------------------------------+
+| DELAY                                |                     |                                      |
+|   All video: average / 95 %          |     49.0 / 134.5 ms |                       28.5 / 36.8 ms |
+|   I frames: average                  |             45.2 ms |                              31.1 ms |
+|   Video pieces later than the buffer |              3.89 % |                               0.00 % |
++--------------------------------------+---------------------+--------------------------------------+
+| NETWORK                              |                     |                                      |
+|   Video over Wi-Fi / 5G              |      0.0 / 516.1 MB |                     195.4 / 322.0 MB |
++--------------------------------------+---------------------+--------------------------------------+
+
+=======================================================================================================================================
+ PER PHASE - H.264
+=======================================================================================================================================
++-------+----------+-------------------+-------------+-------------+--------------+----------------+----------------+-----------------+
+| Phase | Time (s) | 5G / Wi-Fi Mbit/s | Fixed: I on | Fixed: I ok | Fixed: shown | Adaptive: I on | Adaptive: I ok | Adaptive: shown |
++=======+==========+===================+=============+=============+==============+================+================+=================+
+| 1     |    0-180 |         700 / 500 |          5G |     180/180 |    4590/5400 |             5G |        180/180 |       4760/5400 |
+| 2     |  180-360 |           5 / 500 |          5G |     150/180 |    3568/5400 |       5G+Wi-Fi |        180/180 |       2169/5400 |
+| 3     |  360-540 |         700 / 400 |          5G |     180/180 |    4819/5400 |       5G+Wi-Fi |        180/180 |       4508/5400 |
+| 4     |  540-720 |           600 / 5 |          5G |     180/180 |    4712/5400 |             5G |        180/180 |       4869/5400 |
+| 5     |  720-900 |           5 / 500 |          5G |     158/180 |    3984/5400 |       5G+Wi-Fi |        180/180 |       2297/5400 |
++-------+----------+-------------------+-------------+-------------+--------------+----------------+----------------+-----------------+
+
+==================================================================================================================================================================================
+ MINUTE BY MINUTE - H.264  (bandwidth = average over the minute)
+==================================================================================================================================================================================
++-------------------+-------------------+-----------------+-------------------+---------------------+--------------------+------------------------------+------------------------+
+|      Minute       | 5G / Wi-Fi Mbit/s | Fixed: I frames | Fixed: P/B frames | Fixed: frames shown | Adaptive: I frames |     Adaptive: P/B frames     | Adaptive: frames shown |
++===================+===================+=================+===================+=====================+====================+==============================+========================+
+|  1  (0:00-1:00)   |         700 / 500 |              5G |      5G datagrams |    1475/1800 (82 %) |                 5G |                 5G datagrams |       1563/1800 (87 %) |
+|  2  (1:00-2:00)   |         700 / 500 |              5G |      5G datagrams |    1492/1800 (83 %) |                 5G |                 5G datagrams |       1545/1800 (86 %) |
+|  3  (2:00-3:00)   |         700 / 500 |              5G |      5G datagrams |    1623/1800 (90 %) |                 5G |                 5G datagrams |       1652/1800 (92 %) |
+|  4  (3:00-4:00)   |         159 / 500 |              5G |      5G datagrams |    1381/1800 (77 %) | 5G 29s + Wi-Fi 31s |  5G 9s + Wi-Fi 51s datagrams |        791/1800 (44 %) |
+|  5  (4:00-5:00)   |           5 / 500 |              5G |      5G datagrams |    1203/1800 (67 %) |              Wi-Fi |              Wi-Fi datagrams |        672/1800 (37 %) |
+|  6  (5:00-6:00)   |           5 / 500 |              5G |      5G datagrams |     984/1800 (55 %) |              Wi-Fi |              Wi-Fi datagrams |        706/1800 (39 %) |
+|  7  (6:00-7:00)   |         546 / 422 |              5G |      5G datagrams |    1575/1800 (88 %) |  5G 58s + Wi-Fi 2s | 5G 41s + Wi-Fi 19s datagrams |       1350/1800 (75 %) |
+|  8  (7:00-8:00)   |         700 / 400 |              5G |      5G datagrams |    1584/1800 (88 %) |                 5G |                 5G datagrams |       1549/1800 (86 %) |
+|  9  (8:00-9:00)   |         700 / 400 |              5G |      5G datagrams |    1660/1800 (92 %) |                 5G |                 5G datagrams |       1609/1800 (89 %) |
+| 10  (9:00-10:00)  |          622 / 93 |              5G |      5G datagrams |    1498/1800 (83 %) |                 5G |                 5G datagrams |       1587/1800 (88 %) |
+| 11  (10:00-11:00) |           600 / 5 |              5G |      5G datagrams |    1614/1800 (90 %) |                 5G |                 5G datagrams |       1645/1800 (91 %) |
+| 12  (11:00-12:00) |           600 / 5 |              5G |      5G datagrams |    1600/1800 (89 %) |                 5G |                 5G datagrams |       1637/1800 (91 %) |
+| 13  (12:00-13:00) |         137 / 390 |              5G |      5G datagrams |    1532/1800 (85 %) | 5G 28s + Wi-Fi 32s | 5G 17s + Wi-Fi 43s datagrams |        995/1800 (55 %) |
+| 14  (13:00-14:00) |           5 / 500 |              5G |      5G datagrams |    1177/1800 (65 %) |              Wi-Fi |              Wi-Fi datagrams |        712/1800 (40 %) |
+| 15  (14:00-15:00) |           5 / 500 |              5G |      5G datagrams |    1275/1800 (71 %) |              Wi-Fi |              Wi-Fi datagrams |        590/1800 (33 %) |
++-------------------+-------------------+-----------------+-------------------+---------------------+--------------------+------------------------------+------------------------+
+  The stream is the main way of sending. Adaptive: the sender checks the links every second; while 5G
+  is good the whole video goes on the 5G stream; when 5G gets weak the I frames switch automatically to
+  the Wi-Fi stream and the P/B frames go as datagrams on the better path; back when 5G is good again.
+  No switching: the whole video stays on the 5G stream.
+Made: /home/siddhartha/mininet-wifi-5g/longvideo_results/longvideo_h264_5gmain.png
+Made: /home/siddhartha/mininet-wifi-5g/longvideo_results/longvideo_h264_5gmain.mp4
+
+On the Mac:
+  scp 'siddhartha@192.168.252.4:~/mininet-wifi-5g/longvideo_results/longvideo_*' ~/Downloads/
+  open ~/Downloads/longvideo_h264_5gmain.png ~/Downloads/longvideo_h264_wifimain.png
+  open -a VLC ~/Downloads/longvideo_h264_5gmain.mp4

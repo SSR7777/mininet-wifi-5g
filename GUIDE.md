@@ -10,10 +10,11 @@ and every branch also contains the parts before it:
 | `part3-picoquic` | QUIC with picoquic: file download (HTTP/3) and live stream over QUIC streams / datagrams; video players over QUIC | part 2 |
 | `part4-multipath-live-video` | Wi-Fi + 5G together (multipath QUIC, MPTCP); the real video sent live over picoquic; one grid video to compare everything (VLC) | part 3 |
 | `part5-iframe-aware` | I/P/B frame analysis (H.264, HEVC); I frames over 5G, P/B frames over Wi-Fi | part 4 |
+| `part6-adaptive-switching` | Long video while the capacities change; the better path gets the I frames (stream), the other the P/B frames (datagrams), re-decided every 20 s segment | part 5 |
 | `main` | Everything | |
 
 ```
-part1 ──► part2 ──► part3 ──► part4 ──► part5 = main
+part1 ──► part2 ──► part3 ──► part4 ──► part5 ──► part6 = main
 ```
 
 To look at one part only:
@@ -258,3 +259,19 @@ bash organize_github.sh
 It creates the four part branches and pushes them, and `main`. When asked, the username is your
 GitHub username and the password is a **personal access token** (GitHub - Settings - Developer settings -
 Personal access tokens). Do not paste the token in chats or screenshots; delete it on GitHub after the push.
+
+## Step 6 - Adaptive path switching (`part6-adaptive-switching`)
+
+A 15 min video is sent while the capacity of 5G (700 Mbit/s) and Wi-Fi (500 Mbit/s) changes and crosses
+over (`[adaptive] timeline` in `config.ini`). Before every 20 s segment the sender measures both paths and
+gives the I frames (QUIC stream) to the better path and the P/B frames (QUIC datagrams) to the other one.
+It is compared with never switching (Part 5 case 3) and with an oracle that knows the true timeline.
+
+```bash
+sudo python3 adaptive_test.py --video BBB.webm --minutes 4 --no-quality   # quick test (~20 min)
+sudo python3 adaptive_test.py --video BBB.webm                            # 15 min, 3 cases (~75-90 min)
+python3 adaptive_test.py --show
+```
+
+Every step, command and output file: [PART6_ADAPTIVE.md](PART6_ADAPTIVE.md).
+
