@@ -1,0 +1,122 @@
+*** Creating nodes
+*** Configuring Wi-Fi nodes
+*** Creating links
+(500.00Mbit 10ms delay 1.00000% loss) *** Error: Warning: sch_htb: quantum of class 50001 is big. Consider r2q change.
+(500.00Mbit 10ms delay) *** Error: Warning: sch_htb: quantum of class 50001 is big. Consider r2q change.
+(700.00Mbit 15ms delay 2.00000% loss) *** Error: Warning: sch_htb: quantum of class 50001 is big. Consider r2q change.
+(700.00Mbit 15ms delay) *** Error: Warning: sch_htb: quantum of class 50001 is big. Consider r2q change.
+*** Starting network
+*** Starting controller(s)
+*** Starting L2 nodes
+s5g (700.00Mbit 15ms delay) *** Error: Warning: sch_htb: quantum of class 50001 is big. Consider r2q change.
+ap1 ...(700.00Mbit 15ms delay) *** Error: Warning: sch_htb: quantum of class 50001 is big. Consider r2q change.
+...
+*** Waiting for Wi-Fi association
+Connected to 02:00:00:00:01:00 (on sta1-wlan0)
+	SSID: wifi-path
+	freq: 2412.0
+	RX: 1534 bytes (30 packets)
+	TX: 559 bytes (6 packets)
+	signal: -36 dBm
+	tx bitrate: 11.0 MBit/s
+	bss flags: short-slot-time
+	dtim period: 2
+	beacon int: 100
+
+
+################ SCENARIO: Congested network (background UDP traffic 10 % -> high) ################
+
+========== Congested network (background UDP traffic 10 % -> high) - 14.0 min - NO VIDEO: measures delay/loss every 5 s and decides where the I and P/B frames would go ==========
+***  0:00  5G [-, 0.0 %, good, bg 10 %]  Wi-Fi [-, 0.0 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  0:30  5G [15 ms, 1.7 %, good, bg 10 %]  Wi-Fi [10 ms, 0.9 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  1:00  5G [15 ms, 1.6 %, good, bg 10 %]  Wi-Fi [10 ms, 0.5 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  1:30  5G [15 ms, 2.8 %, good, bg 10 %]  Wi-Fi [10 ms, 1.2 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  2:00  5G [15 ms, 2.1 %, good, bg 10 %]  Wi-Fi [10 ms, 0.7 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  2:30  5G [15 ms, 2.2 %, good, bg 10 %]  Wi-Fi [10 ms, 1.1 %, good, bg 60 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  2:45  Wi-Fi is now CONGESTED (228 ms, 17.8 %, congested)
+***  3:00  5G [15 ms, 2.3 %, good, bg 10 %]  Wi-Fi [230 ms, 21.6 %, congested, bg 120 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  3:30  5G [15 ms, 1.4 %, good, bg 10 %]  Wi-Fi [230 ms, 19.9 %, congested, bg 120 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  4:00  5G [15 ms, 1.9 %, good, bg 10 %]  Wi-Fi [230 ms, 22.3 %, congested, bg 120 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  4:30  5G [15 ms, 1.9 %, good, bg 10 %]  Wi-Fi [230 ms, 24.0 %, congested, bg 120 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  4:50  Wi-Fi is now HIGH DELAY (114 ms, 0.6 %, high delay)
+***  4:55  Wi-Fi is now GOOD (10 ms, 0.9 %, good)
+***  5:00  5G [17 ms, 1.9 %, good, bg 10 %]  Wi-Fi [13 ms, 1.3 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  5:30  5G [15 ms, 2.4 %, good, bg 10 %]  Wi-Fi [10 ms, 0.6 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  6:00  5G [15 ms, 2.5 %, good, bg 10 %]  Wi-Fi [10 ms, 1.3 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  6:30  5G [15 ms, 1.5 %, good, bg 10 %]  Wi-Fi [10 ms, 1.2 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  7:00  5G [15 ms, 2.3 %, good, bg 10 %]  Wi-Fi [10 ms, 1.3 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  7:25  5G is now CONGESTED (164 ms, 18.7 %, congested)
+***  7:25  SWITCH -> I frames on the Wi-Fi stream, P/B as 5G datagrams  [5G 164 ms, 18.7 %, congested | Wi-Fi 10 ms, 0.6 %, good]
+***  7:30  5G [164 ms, 25.1 %, congested, bg 120 %]  Wi-Fi [10 ms, 0.7 %, good, bg 10 %]  -> I frames on the Wi-Fi stream, P/B as 5G datagrams
+***  8:00  5G [164 ms, 26.3 %, congested, bg 120 %]  Wi-Fi [10 ms, 0.8 %, good, bg 10 %]  -> I frames on the Wi-Fi stream, P/B as 5G datagrams
+***  8:30  5G [164 ms, 25.1 %, congested, bg 120 %]  Wi-Fi [10 ms, 0.7 %, good, bg 10 %]  -> I frames on the Wi-Fi stream, P/B as 5G datagrams
+***  9:00  5G [164 ms, 25.0 %, congested, bg 120 %]  Wi-Fi [10 ms, 0.6 %, good, bg 10 %]  -> I frames on the Wi-Fi stream, P/B as 5G datagrams
+***  9:30  5G is now HIGH DELAY (54 ms, 2.0 %, high delay)
+***  9:30  5G [54 ms, 2.0 %, high delay, bg 60 %]  Wi-Fi [10 ms, 0.8 %, good, bg 10 %]  -> I frames on the Wi-Fi stream, P/B as 5G datagrams
+***  9:35  5G is now GOOD (15 ms, 1.9 %, good)
+***  9:35  SWITCH -> I frames on the 5G stream, P/B as Wi-Fi datagrams  [5G 15 ms, 1.9 %, good | Wi-Fi 10 ms, 1.6 %, good]
+*** 10:00  5G [15 ms, 0.9 %, good, bg 10 %]  Wi-Fi [10 ms, 1.2 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+*** 10:30  5G [15 ms, 2.1 %, good, bg 10 %]  Wi-Fi [10 ms, 1.1 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+*** 11:00  5G [15 ms, 2.0 %, good, bg 10 %]  Wi-Fi [10 ms, 0.9 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+*** 11:30  5G [15 ms, 1.0 %, good, bg 10 %]  Wi-Fi [10 ms, 1.0 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+*** 12:00  5G [16 ms, 1.6 %, good, bg 120 %]  Wi-Fi [43 ms, 0.9 %, good, bg 120 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+*** 12:05  5G is now CONGESTED (89 ms, 6.3 %, congested)
+*** 12:05  Wi-Fi is now CONGESTED (228 ms, 16.9 %, congested)
+*** 12:30  5G [164 ms, 14.6 %, congested, bg 120 %]  Wi-Fi [230 ms, 20.9 %, congested, bg 120 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+*** 13:00  5G [164 ms, 16.5 %, congested, bg 120 %]  Wi-Fi [230 ms, 20.7 %, congested, bg 120 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+*** 13:30  5G [164 ms, 15.4 %, congested, bg 120 %]  Wi-Fi [230 ms, 20.9 %, congested, bg 120 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+    2 switches of the I frames at 445 575 s
+*** Stopping network
+*** Stopping 0 controllers
+
+*** Stopping 5 links
+.....
+*** Stopping switches/access points
+s5g ap1 
+*** Stopping nodes
+srv sta1 
+
+*** Removing WiFi module and Configurations
+*** Killing mac80211_hwsim
+
+*** Done
+
+================================================================================================================================================
+ PART 8 (NO VIDEO) - CONGESTED NETWORK (BACKGROUND UDP TRAFFIC 10 % -> HIGH)  - 2 switches of the I frames
+================================================================================================================================================
++-------+----------+-----------------+-------------------------+-------------------------+---------------------+-----------+-------------------+
+| Phase | Time (s) |  What happens   |   5G measured (state)   | Wi-Fi measured (state)  |   Detected after    | Switch at |    I frames on    |
++=======+==========+=================+=========================+=========================+=====================+===========+===================+
+| 1     |    0-140 | both normal     | 15 ms 2.0 % good        | 10 ms 0.9 % good        | -                   | -         |                5G |
+| 2     |  140-280 | Wi-Fi congested | 15 ms 1.9 % good        | 192 ms 18.5 % congested | Wi-Fi 25 s          | -         |                5G |
+| 3     |  280-420 | both normal     | 15 ms 2.0 % good        | 30 ms 2.3 % good        | -                   | -         |                5G |
+| 4     |  420-560 | 5G congested    | 139 ms 21.6 % congested | 10 ms 0.9 % good        | 5G 25 s             | 7:25      | 5G 25s+Wi-Fi 115s |
+| 5     |  560-700 | both normal     | 27 ms 3.3 % good        | 10 ms 0.9 % good        | -                   | 9:35      | 5G 125s+Wi-Fi 15s |
+| 6     |  700-840 | both congested  | 135 ms 13.1 % congested | 192 ms 17.4 % congested | Wi-Fi 25 s, 5G 25 s | -         |                5G |
++-------+----------+-----------------+-------------------------+-------------------------+---------------------+-----------+-------------------+
+
+====================================================================================================================================
+ MINUTE BY MINUTE (NO VIDEO) - congested
+====================================================================================================================================
++-------------------+-----------------+-------------------------+-------------------------+----------------------+-----------------+
+|      Minute       | BG % 5G / Wi-Fi |   5G measured (state)   | Wi-Fi measured (state)  | I frames would go on | P/B would go as |
++===================+=================+=========================+=========================+======================+=================+
+|  1  (0:00-1:00)   |         10 / 10 | 15 ms 1.9 % good        | 10 ms 1.0 % good        |                   5G | Wi-Fi datagrams |
+|  2  (1:00-2:00)   |         10 / 10 | 15 ms 2.0 % good        | 10 ms 0.9 % good        |                   5G | Wi-Fi datagrams |
+|  3  (2:00-3:00)   |         10 / 60 | 15 ms 2.0 % good        | 68 ms 6.0 % good        |                   5G | Wi-Fi datagrams |
+|  4  (3:00-4:00)   |        10 / 120 | 15 ms 2.0 % good        | 230 ms 22.4 % congested |                   5G | Wi-Fi datagrams |
+|  5  (4:00-5:00)   |        10 / 106 | 15 ms 1.9 % good        | 202 ms 18.5 % congested |                   5G | Wi-Fi datagrams |
+|  6  (5:00-6:00)   |         10 / 10 | 15 ms 2.1 % good        | 10 ms 1.0 % good        |                   5G | Wi-Fi datagrams |
+|  7  (6:00-7:00)   |         10 / 10 | 15 ms 2.1 % good        | 10 ms 1.1 % good        |                   5G | Wi-Fi datagrams |
+|  8  (7:00-8:00)   |         97 / 10 | 104 ms 15.4 % congested | 10 ms 1.0 % good        |     5G 25s+Wi-Fi 35s |        switched |
+|  9  (8:00-9:00)   |        120 / 10 | 164 ms 26.1 % congested | 10 ms 0.9 % good        |                Wi-Fi |    5G datagrams |
+| 10  (9:00-10:00)  |         69 / 10 | 93 ms 13.2 % congested  | 10 ms 1.0 % good        |     5G 25s+Wi-Fi 35s |        switched |
+| 11  (10:00-11:00) |         10 / 10 | 15 ms 1.9 % good        | 10 ms 0.9 % good        |                   5G | Wi-Fi datagrams |
+| 12  (11:00-12:00) |         23 / 23 | 15 ms 1.9 % good        | 10 ms 0.9 % good        |                   5G | Wi-Fi datagrams |
+| 13  (12:00-13:00) |       120 / 120 | 146 ms 13.8 % congested | 214 ms 19.0 % congested |                   5G | Wi-Fi datagrams |
+| 14  (13:00-14:00) |       120 / 120 | 164 ms 16.2 % congested | 230 ms 21.2 % congested |                   5G | Wi-Fi datagrams |
++-------------------+-----------------+-------------------------+-------------------------+----------------------+-----------------+
+Made: /home/siddhartha/mininet-wifi-5g/conditions_results/conditions_congested.png
+
+On the Mac:
+  scp 'siddhartha@192.168.252.4:~/mininet-wifi-5g/conditions_results/conditions_*' ~/Downloads/

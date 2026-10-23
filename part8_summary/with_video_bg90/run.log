@@ -1,0 +1,512 @@
+
+*** H.264: encoding a 14.0-minute video (4 Mbit/s, one I frame per second) - this takes a few minutes
+    25200 frames: I 840, P 8019, B 16341, 417 MB
+*** Creating nodes
+*** Configuring Wi-Fi nodes
+*** Creating links
+(500.00Mbit 10ms delay 1.00000% loss) *** Error: Warning: sch_htb: quantum of class 50001 is big. Consider r2q change.
+(500.00Mbit 10ms delay) *** Error: Warning: sch_htb: quantum of class 50001 is big. Consider r2q change.
+(700.00Mbit 15ms delay 2.00000% loss) *** Error: Warning: sch_htb: quantum of class 50001 is big. Consider r2q change.
+(700.00Mbit 15ms delay) *** Error: Warning: sch_htb: quantum of class 50001 is big. Consider r2q change.
+*** Starting network
+*** Starting controller(s)
+*** Starting L2 nodes
+s5g (700.00Mbit 15ms delay) *** Error: Warning: sch_htb: quantum of class 50001 is big. Consider r2q change.
+ap1 ...(700.00Mbit 15ms delay) *** Error: Warning: sch_htb: quantum of class 50001 is big. Consider r2q change.
+...
+*** Waiting for Wi-Fi association
+Connected to 02:00:00:00:01:00 (on sta1-wlan0)
+	SSID: wifi-path
+	freq: 2412.0
+	RX: 1445 bytes (28 packets)
+	TX: 559 bytes (6 packets)
+	signal: -36 dBm
+	tx bitrate: 11.0 MBit/s
+	bss flags: short-slot-time
+	dtim period: 2
+	beacon int: 100
+
+
+################ SCENARIO: Congested network (background UDP traffic 10 % -> high) ################
+
+========== Congested network (background UDP traffic 10 % -> high) - 14.0 min - no switching: I frames on the 5G stream, P/B as Wi-Fi datagrams ==========
+***  0:00  5G [-, 0.0 %, good, bg 10 %]  Wi-Fi [-, 0.0 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  0:30  5G [15 ms, 1.3 %, good, bg 10 %]  Wi-Fi [10 ms, 0.9 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  1:00  5G [15 ms, 1.2 %, good, bg 10 %]  Wi-Fi [10 ms, 1.3 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  1:30  5G [15 ms, 1.9 %, good, bg 10 %]  Wi-Fi [10 ms, 1.3 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  2:00  5G [15 ms, 2.4 %, good, bg 10 %]  Wi-Fi [10 ms, 0.9 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  2:30  5G [15 ms, 2.2 %, good, bg 10 %]  Wi-Fi [10 ms, 1.6 %, good, bg 50 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  3:00  5G [15 ms, 1.9 %, good, bg 10 %]  Wi-Fi [10 ms, 0.9 %, good, bg 90 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  3:30  5G [15 ms, 2.0 %, good, bg 10 %]  Wi-Fi [10 ms, 0.9 %, good, bg 90 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  4:00  5G [15 ms, 2.1 %, good, bg 10 %]  Wi-Fi [10 ms, 0.7 %, good, bg 90 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  4:30  5G [15 ms, 2.1 %, good, bg 10 %]  Wi-Fi [10 ms, 0.6 %, good, bg 90 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  5:00  5G [15 ms, 3.0 %, good, bg 10 %]  Wi-Fi [10 ms, 1.2 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  5:30  5G [15 ms, 2.2 %, good, bg 10 %]  Wi-Fi [10 ms, 0.8 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  6:00  5G [15 ms, 1.6 %, good, bg 10 %]  Wi-Fi [10 ms, 0.6 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  6:30  5G [15 ms, 2.1 %, good, bg 10 %]  Wi-Fi [10 ms, 0.8 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  7:00  5G [15 ms, 2.8 %, good, bg 10 %]  Wi-Fi [10 ms, 0.7 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  7:30  5G [15 ms, 1.7 %, good, bg 90 %]  Wi-Fi [10 ms, 1.0 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  8:00  5G [15 ms, 2.4 %, good, bg 90 %]  Wi-Fi [10 ms, 1.5 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  8:30  5G [15 ms, 2.0 %, good, bg 90 %]  Wi-Fi [10 ms, 0.9 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  9:00  5G [15 ms, 1.7 %, good, bg 90 %]  Wi-Fi [10 ms, 1.0 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  9:30  5G [15 ms, 1.1 %, good, bg 50 %]  Wi-Fi [10 ms, 1.1 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+*** 10:00  5G [15 ms, 2.2 %, good, bg 10 %]  Wi-Fi [10 ms, 1.0 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+*** 10:30  5G [15 ms, 1.8 %, good, bg 10 %]  Wi-Fi [10 ms, 1.2 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+*** 11:00  5G [15 ms, 2.6 %, good, bg 10 %]  Wi-Fi [10 ms, 0.9 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+*** 11:30  5G [15 ms, 0.6 %, good, bg 10 %]  Wi-Fi [10 ms, 1.1 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+*** 12:00  5G [15 ms, 1.7 %, good, bg 90 %]  Wi-Fi [10 ms, 0.8 %, good, bg 90 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+*** 12:30  5G [16 ms, 2.9 %, good, bg 90 %]  Wi-Fi [11 ms, 1.1 %, good, bg 90 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+*** 13:00  5G [16 ms, 2.4 %, good, bg 90 %]  Wi-Fi [11 ms, 0.8 %, good, bg 90 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+*** 13:30  5G [15 ms, 1.9 %, good, bg 90 %]  Wi-Fi [10 ms, 0.5 %, good, bg 90 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+    data check: 2204058/2204058 received packets correct
+    0 switches; I 838/840, P 6183/8019, B 15423/16341, GOPs lost 2; frames shown 9103/25200; PSNR 20.2 dB; delay avg 25.5 ms
+
+========== Congested network (background UDP traffic 10 % -> high) - 14.0 min - adaptive: measures delay/loss every 5 s, I frames on the better path's stream, P/B on the worse path's datagrams ==========
+***  0:00  5G [-, 0.0 %, good, bg 10 %]  Wi-Fi [-, 0.0 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  0:30  5G [15 ms, 1.6 %, good, bg 10 %]  Wi-Fi [10 ms, 0.9 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  1:00  5G [15 ms, 1.9 %, good, bg 10 %]  Wi-Fi [10 ms, 1.4 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  1:30  5G [15 ms, 2.2 %, good, bg 10 %]  Wi-Fi [10 ms, 0.9 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  2:00  5G [15 ms, 2.4 %, good, bg 10 %]  Wi-Fi [10 ms, 0.9 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  2:30  5G [15 ms, 2.8 %, good, bg 10 %]  Wi-Fi [10 ms, 1.0 %, good, bg 50 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  3:00  5G [15 ms, 2.3 %, good, bg 10 %]  Wi-Fi [10 ms, 1.1 %, good, bg 90 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  3:30  5G [15 ms, 1.9 %, good, bg 10 %]  Wi-Fi [10 ms, 0.7 %, good, bg 90 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  4:00  5G [15 ms, 2.0 %, good, bg 10 %]  Wi-Fi [10 ms, 0.5 %, good, bg 90 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  4:30  5G [15 ms, 1.5 %, good, bg 10 %]  Wi-Fi [10 ms, 1.1 %, good, bg 90 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  5:00  5G [15 ms, 1.1 %, good, bg 10 %]  Wi-Fi [10 ms, 0.5 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  5:30  5G [15 ms, 2.2 %, good, bg 10 %]  Wi-Fi [10 ms, 0.8 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  6:00  5G [15 ms, 2.1 %, good, bg 10 %]  Wi-Fi [10 ms, 1.2 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  6:30  5G [15 ms, 2.4 %, good, bg 10 %]  Wi-Fi [10 ms, 1.0 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  7:00  5G [15 ms, 2.3 %, good, bg 10 %]  Wi-Fi [10 ms, 0.4 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  7:30  5G [15 ms, 1.7 %, good, bg 90 %]  Wi-Fi [10 ms, 0.9 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  8:00  5G [15 ms, 2.0 %, good, bg 90 %]  Wi-Fi [10 ms, 0.8 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  8:30  5G [15 ms, 1.5 %, good, bg 90 %]  Wi-Fi [10 ms, 0.9 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  9:00  5G [15 ms, 1.7 %, good, bg 90 %]  Wi-Fi [10 ms, 1.5 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  9:30  5G [15 ms, 2.3 %, good, bg 50 %]  Wi-Fi [10 ms, 1.4 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+*** 10:00  5G [15 ms, 2.7 %, good, bg 10 %]  Wi-Fi [10 ms, 1.0 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+*** 10:30  5G [15 ms, 1.1 %, good, bg 10 %]  Wi-Fi [10 ms, 1.1 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+*** 11:00  5G [16 ms, 1.4 %, good, bg 10 %]  Wi-Fi [11 ms, 1.2 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+*** 11:20  Wi-Fi is now DEGRADED (15 ms, 1.7 %, degraded)
+*** 11:25  Wi-Fi is now GOOD (10 ms, 1.0 %, good)
+*** 11:30  5G [15 ms, 1.4 %, good, bg 10 %]  Wi-Fi [10 ms, 0.9 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+*** 12:00  5G [15 ms, 1.8 %, good, bg 90 %]  Wi-Fi [10 ms, 0.7 %, good, bg 90 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+*** 12:30  5G [15 ms, 1.3 %, good, bg 90 %]  Wi-Fi [10 ms, 1.5 %, good, bg 90 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+*** 13:00  5G [15 ms, 2.1 %, good, bg 90 %]  Wi-Fi [10 ms, 0.6 %, good, bg 90 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+*** 13:30  5G [15 ms, 1.8 %, good, bg 90 %]  Wi-Fi [10 ms, 1.3 %, good, bg 90 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+    data check: 2201270/2201270 received packets correct
+    0 switches; I 831/840, P 6234/8019, B 15420/16341, GOPs lost 9; frames shown 9416/25200; PSNR 20.6 dB; delay avg 26.0 ms
+
+################ SCENARIO: Lossy network (loss jumps, delay stays the same) ################
+
+========== Lossy network (loss jumps, delay stays the same) - 14.0 min - no switching: I frames on the 5G stream, P/B as Wi-Fi datagrams ==========
+***  0:00  5G [-, 0.0 %, good, bg 10 %]  Wi-Fi [-, 0.0 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  0:30  5G [15 ms, 1.7 %, good, bg 10 %]  Wi-Fi [10 ms, 0.6 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  1:00  5G [15 ms, 1.6 %, good, bg 10 %]  Wi-Fi [10 ms, 1.0 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  1:30  5G [15 ms, 2.5 %, good, bg 10 %]  Wi-Fi [10 ms, 1.2 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  2:00  5G [15 ms, 1.7 %, good, bg 10 %]  Wi-Fi [10 ms, 0.6 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  2:25  Wi-Fi is now LOSSY (10 ms, 6.2 %, lossy)
+***  2:30  5G [15 ms, 2.5 %, good, bg 10 %]  Wi-Fi [10 ms, 7.4 %, lossy, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  3:00  5G [15 ms, 2.6 %, good, bg 10 %]  Wi-Fi [10 ms, 7.4 %, lossy, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  3:30  5G [15 ms, 2.3 %, good, bg 10 %]  Wi-Fi [10 ms, 8.0 %, lossy, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  4:00  5G [15 ms, 1.0 %, good, bg 10 %]  Wi-Fi [10 ms, 8.9 %, lossy, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  4:30  5G [15 ms, 1.3 %, good, bg 10 %]  Wi-Fi [10 ms, 7.1 %, lossy, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  4:45  Wi-Fi is now GOOD (10 ms, 1.5 %, good)
+***  5:00  5G [15 ms, 2.2 %, good, bg 10 %]  Wi-Fi [10 ms, 0.5 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  5:30  5G [15 ms, 2.0 %, good, bg 10 %]  Wi-Fi [10 ms, 0.7 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  6:00  5G [15 ms, 1.7 %, good, bg 10 %]  Wi-Fi [10 ms, 0.6 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  6:30  5G [15 ms, 2.3 %, good, bg 10 %]  Wi-Fi [10 ms, 1.5 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  7:00  5G [15 ms, 2.6 %, good, bg 10 %]  Wi-Fi [10 ms, 1.2 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  7:05  5G is now LOSSY (15 ms, 8.8 %, lossy)
+***  7:30  5G [15 ms, 7.7 %, lossy, bg 10 %]  Wi-Fi [10 ms, 0.8 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  8:00  5G [15 ms, 7.1 %, lossy, bg 10 %]  Wi-Fi [10 ms, 1.2 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  8:30  5G [15 ms, 7.9 %, lossy, bg 10 %]  Wi-Fi [10 ms, 0.5 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  9:00  5G [15 ms, 7.0 %, lossy, bg 10 %]  Wi-Fi [10 ms, 1.7 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  9:25  5G is now GOOD (15 ms, 2.5 %, good)
+***  9:30  5G [15 ms, 2.3 %, good, bg 10 %]  Wi-Fi [10 ms, 0.9 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+*** 10:00  5G [15 ms, 1.1 %, good, bg 10 %]  Wi-Fi [10 ms, 1.2 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+*** 10:30  5G [15 ms, 2.2 %, good, bg 10 %]  Wi-Fi [10 ms, 1.0 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+*** 11:00  5G [15 ms, 1.9 %, good, bg 10 %]  Wi-Fi [10 ms, 0.5 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+*** 11:30  5G [15 ms, 2.4 %, good, bg 10 %]  Wi-Fi [10 ms, 1.2 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+*** 11:45  5G is now LOSSY (15 ms, 7.0 %, lossy)
+*** 11:45  Wi-Fi is now LOSSY (10 ms, 7.4 %, lossy)
+*** 12:00  5G [15 ms, 8.1 %, lossy, bg 10 %]  Wi-Fi [10 ms, 8.4 %, lossy, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+*** 12:30  5G [15 ms, 8.4 %, lossy, bg 10 %]  Wi-Fi [10 ms, 8.8 %, lossy, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+*** 13:00  5G [15 ms, 8.7 %, lossy, bg 10 %]  Wi-Fi [10 ms, 7.6 %, lossy, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+*** 13:30  5G [15 ms, 7.3 %, lossy, bg 10 %]  Wi-Fi [10 ms, 7.3 %, lossy, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+    data check: 2171596/2171596 received packets correct
+    0 switches; I 817/840, P 4807/8019, B 13769/16341, GOPs lost 23; frames shown 6548/25200; PSNR 19.6 dB; delay avg 26.5 ms
+
+========== Lossy network (loss jumps, delay stays the same) - 14.0 min - adaptive: measures delay/loss every 5 s, I frames on the better path's stream, P/B on the worse path's datagrams ==========
+***  0:00  5G [-, 0.0 %, good, bg 10 %]  Wi-Fi [-, 0.0 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  0:30  5G [15 ms, 1.7 %, good, bg 10 %]  Wi-Fi [10 ms, 0.8 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  1:00  5G [15 ms, 2.1 %, good, bg 10 %]  Wi-Fi [10 ms, 1.6 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  1:30  5G [15 ms, 2.1 %, good, bg 10 %]  Wi-Fi [10 ms, 0.9 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  2:00  5G [15 ms, 1.6 %, good, bg 10 %]  Wi-Fi [10 ms, 0.6 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  2:25  Wi-Fi is now LOSSY (11 ms, 7.4 %, lossy)
+***  2:30  5G [15 ms, 1.7 %, good, bg 10 %]  Wi-Fi [10 ms, 9.4 %, lossy, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  3:00  5G [15 ms, 1.7 %, good, bg 10 %]  Wi-Fi [10 ms, 7.7 %, lossy, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  3:30  5G [15 ms, 1.9 %, good, bg 10 %]  Wi-Fi [10 ms, 8.3 %, lossy, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  4:00  5G [15 ms, 1.8 %, good, bg 10 %]  Wi-Fi [10 ms, 9.5 %, lossy, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  4:30  5G [15 ms, 1.4 %, good, bg 10 %]  Wi-Fi [10 ms, 7.7 %, lossy, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  4:45  Wi-Fi is now GOOD (10 ms, 1.0 %, good)
+***  5:00  5G [15 ms, 1.3 %, good, bg 10 %]  Wi-Fi [10 ms, 0.6 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  5:30  5G [15 ms, 2.5 %, good, bg 10 %]  Wi-Fi [10 ms, 1.2 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  6:00  5G [15 ms, 1.4 %, good, bg 10 %]  Wi-Fi [10 ms, 0.9 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  6:30  5G [15 ms, 1.7 %, good, bg 10 %]  Wi-Fi [10 ms, 0.8 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  7:00  5G [15 ms, 2.0 %, good, bg 10 %]  Wi-Fi [10 ms, 1.4 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  7:05  5G is now LOSSY (15 ms, 6.9 %, lossy)
+***  7:05  SWITCH -> I frames on the Wi-Fi stream, P/B as 5G datagrams  [5G 15 ms, 6.9 %, lossy | Wi-Fi 10 ms, 0.9 %, good]
+***  7:30  5G [15 ms, 7.9 %, lossy, bg 10 %]  Wi-Fi [10 ms, 0.8 %, good, bg 10 %]  -> I frames on the Wi-Fi stream, P/B as 5G datagrams
+***  8:00  5G [15 ms, 7.3 %, lossy, bg 10 %]  Wi-Fi [10 ms, 0.8 %, good, bg 10 %]  -> I frames on the Wi-Fi stream, P/B as 5G datagrams
+***  8:30  5G [15 ms, 6.8 %, lossy, bg 10 %]  Wi-Fi [10 ms, 1.1 %, good, bg 10 %]  -> I frames on the Wi-Fi stream, P/B as 5G datagrams
+***  9:00  5G [15 ms, 7.7 %, lossy, bg 10 %]  Wi-Fi [10 ms, 1.0 %, good, bg 10 %]  -> I frames on the Wi-Fi stream, P/B as 5G datagrams
+***  9:25  5G is now GOOD (15 ms, 2.0 %, good)
+***  9:25  SWITCH -> I frames on the 5G stream, P/B as Wi-Fi datagrams  [5G 15 ms, 2.0 %, good | Wi-Fi 10 ms, 0.8 %, good]
+***  9:30  5G [15 ms, 1.5 %, good, bg 10 %]  Wi-Fi [10 ms, 1.1 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+*** 10:00  5G [15 ms, 1.6 %, good, bg 10 %]  Wi-Fi [10 ms, 0.8 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+*** 10:30  5G [15 ms, 1.8 %, good, bg 10 %]  Wi-Fi [10 ms, 1.3 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+*** 11:00  5G [15 ms, 1.6 %, good, bg 10 %]  Wi-Fi [10 ms, 1.3 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+*** 11:30  5G [15 ms, 2.4 %, good, bg 10 %]  Wi-Fi [10 ms, 1.2 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+*** 11:45  5G is now LOSSY (15 ms, 7.2 %, lossy)
+*** 11:45  Wi-Fi is now LOSSY (10 ms, 7.6 %, lossy)
+*** 12:00  5G [15 ms, 7.2 %, lossy, bg 10 %]  Wi-Fi [10 ms, 7.3 %, lossy, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+*** 12:30  5G [15 ms, 7.3 %, lossy, bg 10 %]  Wi-Fi [10 ms, 8.4 %, lossy, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+*** 13:00  5G [15 ms, 9.1 %, lossy, bg 10 %]  Wi-Fi [10 ms, 8.6 %, lossy, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+*** 13:30  5G [15 ms, 7.6 %, lossy, bg 10 %]  Wi-Fi [10 ms, 8.8 %, lossy, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+    data check: 2152479/2152479 received packets correct
+    2 switches; I 822/840, P 3953/8019, B 13099/16341, GOPs lost 18; frames shown 5623/25200; PSNR 19.0 dB; delay avg 27.2 ms
+
+################ SCENARIO: Degraded network (delay and loss slowly getting worse) ################
+
+========== Degraded network (delay and loss slowly getting worse) - 14.0 min - no switching: I frames on the 5G stream, P/B as Wi-Fi datagrams ==========
+***  0:00  5G [-, 0.0 %, good, bg 10 %]  Wi-Fi [-, 0.0 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  0:30  5G [15 ms, 1.9 %, good, bg 10 %]  Wi-Fi [11 ms, 0.8 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  1:00  5G [15 ms, 2.5 %, good, bg 10 %]  Wi-Fi [10 ms, 0.7 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  1:30  5G [15 ms, 1.6 %, good, bg 10 %]  Wi-Fi [10 ms, 1.2 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  2:00  5G [15 ms, 1.5 %, good, bg 10 %]  Wi-Fi [10 ms, 1.2 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  2:30  5G [15 ms, 1.7 %, good, bg 10 %]  Wi-Fi [13 ms, 1.5 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  2:35  Wi-Fi is now DEGRADED (15 ms, 1.6 %, degraded)
+***  3:00  5G [15 ms, 1.9 %, good, bg 10 %]  Wi-Fi [26 ms, 2.4 %, degraded, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  3:30  5G [15 ms, 2.2 %, good, bg 10 %]  Wi-Fi [39 ms, 4.1 %, degraded, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  3:50  Wi-Fi is now LOSSY (47 ms, 5.7 %, lossy)
+***  3:55  Wi-Fi is now DEGRADED (49 ms, 4.2 %, degraded)
+***  4:00  Wi-Fi is now CONGESTED (51 ms, 5.4 %, congested)
+***  4:00  5G [15 ms, 1.5 %, good, bg 10 %]  Wi-Fi [51 ms, 5.4 %, congested, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  4:30  5G [15 ms, 1.6 %, good, bg 10 %]  Wi-Fi [64 ms, 7.0 %, congested, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  4:45  Wi-Fi is now GOOD (16 ms, 1.8 %, good)
+***  5:00  5G [15 ms, 1.6 %, good, bg 10 %]  Wi-Fi [10 ms, 1.4 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  5:30  5G [15 ms, 1.5 %, good, bg 10 %]  Wi-Fi [10 ms, 0.9 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  6:00  5G [15 ms, 1.7 %, good, bg 10 %]  Wi-Fi [10 ms, 0.9 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  6:30  5G [15 ms, 2.4 %, good, bg 10 %]  Wi-Fi [10 ms, 0.7 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  7:00  5G [15 ms, 2.2 %, good, bg 10 %]  Wi-Fi [10 ms, 1.2 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  7:15  5G is now DEGRADED (20 ms, 2.9 %, degraded)
+***  7:30  5G [26 ms, 2.5 %, degraded, bg 10 %]  Wi-Fi [10 ms, 1.6 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  7:55  5G is now LOSSY (37 ms, 5.0 %, lossy)
+***  8:00  5G is now DEGRADED (39 ms, 4.1 %, degraded)
+***  8:00  5G [39 ms, 4.1 %, degraded, bg 10 %]  Wi-Fi [10 ms, 0.3 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  8:25  5G is now CONGESTED (50 ms, 5.6 %, congested)
+***  8:30  5G is now HIGH DELAY (52 ms, 4.9 %, high delay)
+***  8:30  5G [52 ms, 4.9 %, high delay, bg 10 %]  Wi-Fi [10 ms, 0.9 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  8:35  5G is now CONGESTED (54 ms, 5.3 %, congested)
+***  9:00  5G [65 ms, 7.1 %, congested, bg 10 %]  Wi-Fi [10 ms, 1.3 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  9:25  5G is now GOOD (21 ms, 2.2 %, good)
+***  9:30  5G [15 ms, 1.4 %, good, bg 10 %]  Wi-Fi [10 ms, 1.4 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+*** 10:00  5G [15 ms, 1.6 %, good, bg 10 %]  Wi-Fi [10 ms, 0.7 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+*** 10:30  5G [15 ms, 1.5 %, good, bg 10 %]  Wi-Fi [10 ms, 1.0 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+*** 11:00  5G [17 ms, 1.6 %, good, bg 10 %]  Wi-Fi [11 ms, 1.4 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+*** 11:30  5G [15 ms, 2.0 %, good, bg 10 %]  Wi-Fi [10 ms, 1.0 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+*** 11:55  Wi-Fi is now DEGRADED (15 ms, 1.4 %, degraded)
+*** 12:00  5G is now DEGRADED (19 ms, 2.5 %, degraded)
+*** 12:00  5G [19 ms, 2.5 %, degraded, bg 10 %]  Wi-Fi [17 ms, 1.5 %, degraded, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+*** 12:30  5G [25 ms, 2.7 %, degraded, bg 10 %]  Wi-Fi [30 ms, 3.2 %, degraded, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+*** 13:00  5G [32 ms, 3.0 %, degraded, bg 10 %]  Wi-Fi [43 ms, 3.4 %, degraded, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+*** 13:15  Wi-Fi is now LOSSY (49 ms, 5.1 %, lossy)
+*** 13:20  Wi-Fi is now HIGH DELAY (52 ms, 3.6 %, high delay)
+*** 13:25  Wi-Fi is now CONGESTED (54 ms, 5.6 %, congested)
+*** 13:30  5G [38 ms, 3.7 %, degraded, bg 10 %]  Wi-Fi [56 ms, 5.2 %, congested, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+*** 13:45  5G is now HIGH DELAY (51 ms, 3.6 %, high delay)
+*** 13:50  5G is now LOSSY (42 ms, 5.5 %, lossy)
+    data check: 2116317/2116317 received packets correct
+    0 switches; I 654/840, P 5376/8019, B 14353/16341, GOPs lost 186; frames shown 6113/25200; PSNR 17.3 dB; delay avg 46.7 ms
+
+========== Degraded network (delay and loss slowly getting worse) - 14.0 min - adaptive: measures delay/loss every 5 s, I frames on the better path's stream, P/B on the worse path's datagrams ==========
+***  0:00  5G [-, 0.0 %, good, bg 10 %]  Wi-Fi [-, 0.0 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  0:30  5G [15 ms, 2.1 %, good, bg 10 %]  Wi-Fi [10 ms, 0.8 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  1:00  5G [15 ms, 1.8 %, good, bg 10 %]  Wi-Fi [10 ms, 1.0 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  1:30  5G [15 ms, 1.5 %, good, bg 10 %]  Wi-Fi [10 ms, 0.5 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  2:00  5G [15 ms, 2.4 %, good, bg 10 %]  Wi-Fi [10 ms, 0.7 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  2:30  5G [15 ms, 2.4 %, good, bg 10 %]  Wi-Fi [13 ms, 1.1 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  2:50  Wi-Fi is now DEGRADED (21 ms, 2.1 %, degraded)
+***  3:00  5G [15 ms, 1.8 %, good, bg 10 %]  Wi-Fi [26 ms, 2.7 %, degraded, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  3:30  5G [15 ms, 1.7 %, good, bg 10 %]  Wi-Fi [39 ms, 3.2 %, degraded, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  3:55  Wi-Fi is now LOSSY (49 ms, 5.1 %, lossy)
+***  4:00  Wi-Fi is now CONGESTED (51 ms, 5.0 %, congested)
+***  4:00  5G [15 ms, 2.3 %, good, bg 10 %]  Wi-Fi [51 ms, 5.0 %, congested, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  4:30  5G [15 ms, 2.0 %, good, bg 10 %]  Wi-Fi [64 ms, 6.5 %, congested, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  4:45  Wi-Fi is now GOOD (16 ms, 1.0 %, good)
+***  5:00  5G [15 ms, 2.2 %, good, bg 10 %]  Wi-Fi [10 ms, 0.7 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  5:30  5G [15 ms, 2.1 %, good, bg 10 %]  Wi-Fi [10 ms, 0.8 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  6:00  5G [16 ms, 2.6 %, good, bg 10 %]  Wi-Fi [11 ms, 0.8 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  6:30  5G [15 ms, 1.6 %, good, bg 10 %]  Wi-Fi [10 ms, 1.6 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  6:35  5G is now DEGRADED (26 ms, 1.8 %, degraded)
+***  6:35  SWITCH -> I frames on the Wi-Fi stream, P/B as 5G datagrams  [5G 26 ms, 1.8 %, degraded | Wi-Fi 11 ms, 0.9 %, good]
+***  6:45  5G is now GOOD (15 ms, 1.9 %, good)
+***  6:45  SWITCH -> I frames on the 5G stream, P/B as Wi-Fi datagrams  [5G 15 ms, 1.9 %, good | Wi-Fi 10 ms, 0.6 %, good]
+***  7:00  5G [15 ms, 2.5 %, good, bg 10 %]  Wi-Fi [10 ms, 0.6 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+***  7:10  5G is now DEGRADED (19 ms, 2.8 %, degraded)
+***  7:10  SWITCH -> I frames on the Wi-Fi stream, P/B as 5G datagrams  [5G 19 ms, 2.8 %, degraded | Wi-Fi 11 ms, 1.3 %, good]
+***  7:30  5G [26 ms, 3.0 %, degraded, bg 10 %]  Wi-Fi [10 ms, 1.2 %, good, bg 10 %]  -> I frames on the Wi-Fi stream, P/B as 5G datagrams
+***  8:00  5G [39 ms, 3.3 %, degraded, bg 10 %]  Wi-Fi [10 ms, 1.1 %, good, bg 10 %]  -> I frames on the Wi-Fi stream, P/B as 5G datagrams
+***  8:10  5G is now LOSSY (44 ms, 6.3 %, lossy)
+***  8:20  5G is now DEGRADED (48 ms, 4.8 %, degraded)
+***  8:25  5G is now LOSSY (50 ms, 6.0 %, lossy)
+***  8:30  5G is now CONGESTED (52 ms, 6.4 %, congested)
+***  8:30  5G [52 ms, 6.4 %, congested, bg 10 %]  Wi-Fi [10 ms, 1.0 %, good, bg 10 %]  -> I frames on the Wi-Fi stream, P/B as 5G datagrams
+***  9:00  5G [65 ms, 6.5 %, congested, bg 10 %]  Wi-Fi [10 ms, 0.9 %, good, bg 10 %]  -> I frames on the Wi-Fi stream, P/B as 5G datagrams
+***  9:25  5G is now GOOD (21 ms, 1.4 %, good)
+***  9:25  SWITCH -> I frames on the 5G stream, P/B as Wi-Fi datagrams  [5G 21 ms, 1.4 %, good | Wi-Fi 10 ms, 1.3 %, good]
+***  9:30  5G [15 ms, 1.6 %, good, bg 10 %]  Wi-Fi [10 ms, 1.3 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+*** 10:00  5G [15 ms, 1.5 %, good, bg 10 %]  Wi-Fi [10 ms, 0.9 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+*** 10:30  5G [15 ms, 1.2 %, good, bg 10 %]  Wi-Fi [10 ms, 0.7 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+*** 11:00  5G [15 ms, 2.7 %, good, bg 10 %]  Wi-Fi [10 ms, 1.0 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+*** 11:30  5G [15 ms, 2.6 %, good, bg 10 %]  Wi-Fi [10 ms, 1.2 %, good, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+*** 12:00  5G is now DEGRADED (19 ms, 2.5 %, degraded)
+*** 12:00  Wi-Fi is now DEGRADED (17 ms, 1.8 %, degraded)
+*** 12:00  5G [19 ms, 2.5 %, degraded, bg 10 %]  Wi-Fi [17 ms, 1.8 %, degraded, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+*** 12:30  5G [25 ms, 3.5 %, degraded, bg 10 %]  Wi-Fi [30 ms, 2.6 %, degraded, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+*** 13:00  5G [31 ms, 2.9 %, degraded, bg 10 %]  Wi-Fi [43 ms, 4.2 %, degraded, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+*** 13:15  Wi-Fi is now LOSSY (49 ms, 6.8 %, lossy)
+*** 13:20  Wi-Fi is now HIGH DELAY (51 ms, 4.0 %, high delay)
+*** 13:25  5G is now LOSSY (37 ms, 5.6 %, lossy)
+*** 13:25  Wi-Fi is now CONGESTED (54 ms, 5.2 %, congested)
+*** 13:30  5G is now DEGRADED (38 ms, 3.9 %, degraded)
+*** 13:30  5G [38 ms, 3.9 %, degraded, bg 10 %]  Wi-Fi [56 ms, 6.2 %, congested, bg 10 %]  -> I frames on the 5G stream, P/B as Wi-Fi datagrams
+*** 13:55  5G is now LOSSY (43 ms, 5.5 %, lossy)
+    data check: 2118071/2118071 received packets correct
+    4 switches; I 753/840, P 4635/8019, B 13839/16341, GOPs lost 87; frames shown 6314/25200; PSNR 18.4 dB; delay avg 52.4 ms
+*** Stopping network
+*** Stopping 0 controllers
+
+*** Stopping 5 links
+.....
+*** Stopping switches/access points
+s5g ap1 
+*** Stopping nodes
+srv sta1 
+
+*** Removing WiFi module and Configurations
+*** Killing mac80211_hwsim
+
+*** Done
+*** congested: making the VLC video (10-20 min) ...
+*** lossy: making the VLC video (10-20 min) ...
+*** degraded: making the VLC video (10-20 min) ...
+
+==========================================================================================
+ PART 8 - CONGESTED NETWORK (BACKGROUND UDP TRAFFIC 10 % -> HIGH)  (14 min, measured every 5.0 s, Td 50.0 ms, TL 5.0 %, background 10.0 % -> 90.0 %)
+==========================================================================================
++--------------------------------------+------------------------+------------------------+
+|             Measurement              |         Fixed          |        Adaptive        |
++======================================+========================+========================+
+| I frames go on                       |       5G stream always |   better path's stream |
+| P/B frames go on                     | Wi-Fi datagrams always | worse path's datagrams |
+| Automatic switches                   |                      0 |                      0 |
+|   at (s)                             |                      - |                      - |
++--------------------------------------+------------------------+------------------------+
+| FRAMES THAT ARRIVED IN TIME          |                        |                        |
+|   I frames                           |              838 / 840 |              831 / 840 |
+|   P frames                           |            6183 / 8019 |            6234 / 8019 |
+|   B frames                           |          15423 / 16341 |          15420 / 16341 |
+|   GOPs lost (I frame missing)        |                2 / 840 |                9 / 840 |
++--------------------------------------+------------------------+------------------------+
+| WHAT THE VIEWER SEES                 |                        |                        |
+|   Frames shown                       |           9103 / 25200 |           9416 / 25200 |
+|   Frames damaged (measured)          |          14535 / 25200 |          13730 / 25200 |
+|   Picture vs original (PSNR)         |                20.2 dB |                20.6 dB |
+|   Picture similarity (SSIM)          |                  0.880 |                  0.889 |
++--------------------------------------+------------------------+------------------------+
+| DELAY OF THE VIDEO                   |                        |                        |
+|   All video: average / 95 %          |         25.5 / 37.9 ms |         26.0 / 38.1 ms |
+|   I frames: average                  |                36.7 ms |                37.2 ms |
+|   Video pieces later than the buffer |                 0.03 % |                 0.19 % |
++--------------------------------------+------------------------+------------------------+
+|   Video over Wi-Fi / 5G              |       311.0 / 162.9 MB |       311.2 / 162.8 MB |
++--------------------------------------+------------------------+------------------------+
+
+=======================================================================================================================================
+ PER PHASE - congested
+=======================================================================================================================================
++-------+----------+-----------------+---------------------+------------------------+--------------+----------------+-----------------+
+| Phase | Time (s) |  What happens   | 5G measured (state) | Wi-Fi measured (state) | Fixed: shown | Adaptive: I on | Adaptive: shown |
++=======+==========+=================+=====================+========================+==============+================+=================+
+| 1     |    0-140 | both normal     | 16 ms 1.9 % good    | 11 ms 0.9 % good       |    1413/4200 |             5G |       1672/4200 |
+| 2     |  140-280 | Wi-Fi congested | 15 ms 1.9 % good    | 10 ms 1.0 % good       |    1615/4200 |             5G |       1590/4200 |
+| 3     |  280-420 | both normal     | 15 ms 2.0 % good    | 10 ms 1.0 % good       |    1621/4200 |             5G |       1434/4200 |
+| 4     |  420-560 | 5G congested    | 15 ms 1.9 % good    | 10 ms 1.1 % good       |    1400/4200 |             5G |       1383/4200 |
+| 5     |  560-700 | both normal     | 15 ms 1.9 % good    | 10 ms 1.0 % good       |    1380/4200 |             5G |       1485/4200 |
+| 6     |  700-840 | both congested  | 15 ms 2.0 % good    | 10 ms 1.0 % good       |    1674/4200 |             5G |       1852/4200 |
++-------+----------+-----------------+---------------------+------------------------+--------------+----------------+-----------------+
+
+=================================================================================================================================================================
+ MINUTE BY MINUTE - congested  (measured delay/loss = average of the 5 s windows; state = most often)
+=================================================================================================================================================================
++-------------------+-----------------+---------------------+------------------------+-----------------+--------------------+-----------------+-----------------+
+|      Minute       | BG % 5G / Wi-Fi | 5G measured (state) | Wi-Fi measured (state) |  Fixed: shown   | Adaptive: I stream |  Adaptive: P/B  | Adaptive: shown |
++===================+=================+=====================+========================+=================+====================+=================+=================+
+|  1  (0:00-1:00)   |         10 / 10 | 17 ms 1.7 % good    | 12 ms 0.9 % good       | 500/1800 (28 %) |                 5G | Wi-Fi datagrams | 712/1800 (40 %) |
+|  2  (1:00-2:00)   |         10 / 10 | 15 ms 2.0 % good    | 10 ms 0.9 % good       | 700/1800 (39 %) |                 5G | Wi-Fi datagrams | 691/1800 (38 %) |
+|  3  (2:00-3:00)   |         10 / 47 | 15 ms 2.1 % good    | 10 ms 1.1 % good       | 725/1800 (40 %) |                 5G | Wi-Fi datagrams | 683/1800 (38 %) |
+|  4  (3:00-4:00)   |         10 / 90 | 15 ms 1.8 % good    | 10 ms 1.0 % good       | 642/1800 (36 %) |                 5G | Wi-Fi datagrams | 729/1800 (40 %) |
+|  5  (4:00-5:00)   |         10 / 80 | 15 ms 2.1 % good    | 10 ms 1.0 % good       | 755/1800 (42 %) |                 5G | Wi-Fi datagrams | 614/1800 (34 %) |
+|  6  (5:00-6:00)   |         10 / 10 | 15 ms 1.8 % good    | 10 ms 0.9 % good       | 711/1800 (40 %) |                 5G | Wi-Fi datagrams | 713/1800 (40 %) |
+|  7  (6:00-7:00)   |         10 / 10 | 15 ms 2.1 % good    | 10 ms 1.1 % good       | 616/1800 (34 %) |                 5G | Wi-Fi datagrams | 554/1800 (31 %) |
+|  8  (7:00-8:00)   |         73 / 10 | 15 ms 1.9 % good    | 10 ms 1.1 % good       | 664/1800 (37 %) |                 5G | Wi-Fi datagrams | 738/1800 (41 %) |
+|  9  (8:00-9:00)   |         90 / 10 | 15 ms 1.9 % good    | 10 ms 1.0 % good       | 613/1800 (34 %) |                 5G | Wi-Fi datagrams | 479/1800 (27 %) |
+| 10  (9:00-10:00)  |         53 / 10 | 15 ms 2.0 % good    | 10 ms 1.1 % good       | 358/1800 (20 %) |                 5G | Wi-Fi datagrams | 568/1800 (32 %) |
+| 11  (10:00-11:00) |         10 / 10 | 15 ms 2.1 % good    | 10 ms 0.9 % good       | 780/1800 (43 %) |                 5G | Wi-Fi datagrams | 719/1800 (40 %) |
+| 12  (11:00-12:00) |         20 / 20 | 16 ms 1.8 % good    | 11 ms 0.9 % good       | 553/1800 (31 %) |                 5G | Wi-Fi datagrams | 610/1800 (34 %) |
+| 13  (12:00-13:00) |         90 / 90 | 15 ms 2.0 % good    | 10 ms 1.2 % good       | 802/1800 (45 %) |                 5G | Wi-Fi datagrams | 840/1800 (47 %) |
+| 14  (13:00-14:00) |         90 / 90 | 15 ms 2.0 % good    | 10 ms 1.0 % good       | 684/1800 (38 %) |                 5G | Wi-Fi datagrams | 766/1800 (43 %) |
++-------------------+-----------------+---------------------+------------------------+-----------------+--------------------+-----------------+-----------------+
+
+==========================================================================================
+ PART 8 - LOSSY NETWORK (LOSS JUMPS, DELAY STAYS THE SAME)  (14 min, measured every 5.0 s, Td 50.0 ms, TL 5.0 %, background 10.0 % -> 90.0 %)
+==========================================================================================
++--------------------------------------+------------------------+------------------------+
+|             Measurement              |         Fixed          |        Adaptive        |
++======================================+========================+========================+
+| I frames go on                       |       5G stream always |   better path's stream |
+| P/B frames go on                     | Wi-Fi datagrams always | worse path's datagrams |
+| Automatic switches                   |                      0 |                      2 |
+|   at (s)                             |                      - |                425 565 |
++--------------------------------------+------------------------+------------------------+
+| FRAMES THAT ARRIVED IN TIME          |                        |                        |
+|   I frames                           |              817 / 840 |              822 / 840 |
+|   P frames                           |            4807 / 8019 |            3953 / 8019 |
+|   B frames                           |          13769 / 16341 |          13099 / 16341 |
+|   GOPs lost (I frame missing)        |               23 / 840 |               18 / 840 |
++--------------------------------------+------------------------+------------------------+
+| WHAT THE VIEWER SEES                 |                        |                        |
+|   Frames shown                       |           6548 / 25200 |           5623 / 25200 |
+|   Frames damaged (measured)          |          17438 / 25200 |          18187 / 25200 |
+|   Picture vs original (PSNR)         |                19.6 dB |                19.0 dB |
+|   Picture similarity (SSIM)          |                  0.858 |                  0.842 |
++--------------------------------------+------------------------+------------------------+
+| DELAY OF THE VIDEO                   |                        |                        |
+|   All video: average / 95 %          |         26.5 / 44.2 ms |         27.2 / 40.8 ms |
+|   I frames: average                  |                39.9 ms |                37.2 ms |
+|   Video pieces later than the buffer |                 0.07 % |                 0.15 % |
++--------------------------------------+------------------------+------------------------+
+|   Video over Wi-Fi / 5G              |       304.0 / 162.9 MB |       268.2 / 194.8 MB |
++--------------------------------------+------------------------+------------------------+
+
+======================================================================================================================================
+ PER PHASE - lossy
+======================================================================================================================================
++-------+----------+--------------+---------------------+------------------------+--------------+------------------+-----------------+
+| Phase | Time (s) | What happens | 5G measured (state) | Wi-Fi measured (state) | Fixed: shown |  Adaptive: I on  | Adaptive: shown |
++=======+==========+==============+=====================+========================+==============+==================+=================+
+| 1     |    0-140 | both normal  | 15 ms 1.9 % good    | 10 ms 0.9 % good       |    1498/4200 |               5G |       1551/4200 |
+| 2     |  140-280 | Wi-Fi lossy  | 15 ms 2.0 % good    | 10 ms 7.8 % lossy      |     293/4200 |               5G |        280/4200 |
+| 3     |  280-420 | both normal  | 15 ms 1.9 % good    | 10 ms 1.2 % good       |    1471/4200 |               5G |       1621/4200 |
+| 4     |  420-560 | 5G lossy     | 15 ms 7.7 % lossy   | 10 ms 1.2 % good       |    1226/4200 | 5G 5s+Wi-Fi 135s |        352/4200 |
+| 5     |  560-700 | both normal  | 15 ms 2.1 % good    | 10 ms 1.1 % good       |    1768/4200 | 5G 135s+Wi-Fi 5s |       1560/4200 |
+| 6     |  700-840 | both lossy   | 15 ms 7.9 % lossy   | 10 ms 7.8 % lossy      |     292/4200 |               5G |        259/4200 |
++-------+----------+--------------+---------------------+------------------------+--------------+------------------+-----------------+
+
+=================================================================================================================================================================
+ MINUTE BY MINUTE - lossy  (measured delay/loss = average of the 5 s windows; state = most often)
+=================================================================================================================================================================
++-------------------+-----------------+---------------------+------------------------+-----------------+--------------------+-----------------+-----------------+
+|      Minute       | BG % 5G / Wi-Fi | 5G measured (state) | Wi-Fi measured (state) |  Fixed: shown   | Adaptive: I stream |  Adaptive: P/B  | Adaptive: shown |
++===================+=================+=====================+========================+=================+====================+=================+=================+
+|  1  (0:00-1:00)   |         10 / 10 | 15 ms 1.7 % good    | 10 ms 0.9 % good       | 646/1800 (36 %) |                 5G | Wi-Fi datagrams | 690/1800 (38 %) |
+|  2  (1:00-2:00)   |         10 / 10 | 15 ms 2.1 % good    | 10 ms 0.9 % good       | 652/1800 (36 %) |                 5G | Wi-Fi datagrams | 598/1800 (33 %) |
+|  3  (2:00-3:00)   |         10 / 10 | 15 ms 1.9 % good    | 10 ms 5.4 % lossy      | 298/1800 (17 %) |                 5G | Wi-Fi datagrams | 331/1800 (18 %) |
+|  4  (3:00-4:00)   |         10 / 10 | 15 ms 2.0 % good    | 10 ms 7.9 % lossy      |  118/1800 (7 %) |                 5G | Wi-Fi datagrams |  127/1800 (7 %) |
+|  5  (4:00-5:00)   |         10 / 10 | 15 ms 2.1 % good    | 10 ms 6.2 % lossy      | 272/1800 (15 %) |                 5G | Wi-Fi datagrams | 322/1800 (18 %) |
+|  6  (5:00-6:00)   |         10 / 10 | 15 ms 1.8 % good    | 10 ms 1.0 % good       | 674/1800 (37 %) |                 5G | Wi-Fi datagrams | 684/1800 (38 %) |
+|  7  (6:00-7:00)   |         10 / 10 | 15 ms 2.0 % good    | 10 ms 0.9 % good       | 602/1800 (33 %) |                 5G | Wi-Fi datagrams | 700/1800 (39 %) |
+|  8  (7:00-8:00)   |         10 / 10 | 15 ms 7.3 % lossy   | 10 ms 1.1 % good       | 613/1800 (34 %) |    5G 5s+Wi-Fi 55s |        switched | 235/1800 (13 %) |
+|  9  (8:00-9:00)   |         10 / 10 | 15 ms 8.1 % lossy   | 10 ms 1.1 % good       | 476/1800 (26 %) |              Wi-Fi |    5G datagrams |   93/1800 (5 %) |
+| 10  (9:00-10:00)  |         10 / 10 | 15 ms 4.3 % good    | 10 ms 1.2 % good       | 505/1800 (28 %) |   5G 35s+Wi-Fi 25s |        switched | 240/1800 (13 %) |
+| 11  (10:00-11:00) |         10 / 10 | 15 ms 2.0 % good    | 10 ms 1.1 % good       | 897/1800 (50 %) |                 5G | Wi-Fi datagrams | 873/1800 (48 %) |
+| 12  (11:00-12:00) |         10 / 10 | 15 ms 3.5 % good    | 10 ms 2.7 % good       | 531/1800 (30 %) |                 5G | Wi-Fi datagrams | 508/1800 (28 %) |
+| 13  (12:00-13:00) |         10 / 10 | 15 ms 8.0 % lossy   | 10 ms 8.2 % lossy      |  149/1800 (8 %) |                 5G | Wi-Fi datagrams |  112/1800 (6 %) |
+| 14  (13:00-14:00) |         10 / 10 | 15 ms 8.1 % lossy   | 10 ms 8.0 % lossy      |  115/1800 (6 %) |                 5G | Wi-Fi datagrams |  110/1800 (6 %) |
++-------------------+-----------------+---------------------+------------------------+-----------------+--------------------+-----------------+-----------------+
+
+==========================================================================================
+ PART 8 - DEGRADED NETWORK (DELAY AND LOSS SLOWLY GETTING WORSE)  (14 min, measured every 5.0 s, Td 50.0 ms, TL 5.0 %, background 10.0 % -> 90.0 %)
+==========================================================================================
++--------------------------------------+------------------------+------------------------+
+|             Measurement              |         Fixed          |        Adaptive        |
++======================================+========================+========================+
+| I frames go on                       |       5G stream always |   better path's stream |
+| P/B frames go on                     | Wi-Fi datagrams always | worse path's datagrams |
+| Automatic switches                   |                      0 |                      4 |
+|   at (s)                             |                      - |        395 405 430 565 |
++--------------------------------------+------------------------+------------------------+
+| FRAMES THAT ARRIVED IN TIME          |                        |                        |
+|   I frames                           |              654 / 840 |              753 / 840 |
+|   P frames                           |            5376 / 8019 |            4635 / 8019 |
+|   B frames                           |          14353 / 16341 |          13839 / 16341 |
+|   GOPs lost (I frame missing)        |              186 / 840 |               87 / 840 |
++--------------------------------------+------------------------+------------------------+
+| WHAT THE VIEWER SEES                 |                        |                        |
+|   Frames shown                       |           6113 / 25200 |           6314 / 25200 |
+|   Frames damaged (measured)          |          17987 / 25200 |          17767 / 25200 |
+|   Picture vs original (PSNR)         |                17.3 dB |                18.4 dB |
+|   Picture similarity (SSIM)          |                  0.813 |                  0.826 |
++--------------------------------------+------------------------+------------------------+
+| DELAY OF THE VIDEO                   |                        |                        |
+|   All video: average / 95 %          |        46.7 / 132.9 ms |        52.4 / 136.4 ms |
+|   I frames: average                  |                58.3 ms |                43.0 ms |
+|   Video pieces later than the buffer |                 3.18 % |                 2.98 % |
++--------------------------------------+------------------------+------------------------+
+|   Video over Wi-Fi / 5G              |       307.6 / 162.9 MB |       271.6 / 196.6 MB |
++--------------------------------------+------------------------+------------------------+
+
+=========================================================================================================================================================
+ PER PHASE - degraded
+=========================================================================================================================================================
++-------+----------+-------------------------------+----------------------+------------------------+--------------+-------------------+-----------------+
+| Phase | Time (s) |         What happens          | 5G measured (state)  | Wi-Fi measured (state) | Fixed: shown |  Adaptive: I on   | Adaptive: shown |
++=======+==========+===============================+======================+========================+==============+===================+=================+
+| 1     |    0-140 | both normal                   | 15 ms 2.0 % good     | 10 ms 0.9 % good       |    1568/4200 |                5G |       1671/4200 |
+| 2     |  140-280 | Wi-Fi degrading               | 15 ms 1.9 % good     | 38 ms 3.5 % degraded   |     583/4200 |                5G |        647/4200 |
+| 3     |  280-420 | both normal                   | 16 ms 2.0 % good     | 13 ms 1.1 % good       |    1690/4200 | 5G 130s+Wi-Fi 10s |       1427/4200 |
+| 4     |  420-560 | 5G degrading                  | 43 ms 4.8 % degraded | 10 ms 0.9 % good       |     362/4200 | 5G 10s+Wi-Fi 130s |        420/4200 |
+| 5     |  560-700 | both normal                   | 17 ms 2.1 % good     | 10 ms 1.1 % good       |    1495/4200 |  5G 135s+Wi-Fi 5s |       1710/4200 |
+| 6     |  700-840 | both degrading (Wi-Fi faster) | 29 ms 3.4 % degraded | 38 ms 3.6 % degraded   |     415/4200 |                5G |        439/4200 |
++-------+----------+-------------------------------+----------------------+------------------------+--------------+-------------------+-----------------+
+
+===================================================================================================================================================================
+ MINUTE BY MINUTE - degraded  (measured delay/loss = average of the 5 s windows; state = most often)
+===================================================================================================================================================================
++-------------------+-----------------+-----------------------+------------------------+-----------------+--------------------+-----------------+-----------------+
+|      Minute       | BG % 5G / Wi-Fi |  5G measured (state)  | Wi-Fi measured (state) |  Fixed: shown   | Adaptive: I stream |  Adaptive: P/B  | Adaptive: shown |
++===================+=================+=======================+========================+=================+====================+=================+=================+
+|  1  (0:00-1:00)   |         10 / 10 | 15 ms 1.8 % good      | 10 ms 0.8 % good       | 626/1800 (35 %) |                 5G | Wi-Fi datagrams | 623/1800 (35 %) |
+|  2  (1:00-2:00)   |         10 / 10 | 15 ms 2.1 % good      | 10 ms 1.0 % good       | 720/1800 (40 %) |                 5G | Wi-Fi datagrams | 764/1800 (42 %) |
+|  3  (2:00-3:00)   |         10 / 10 | 15 ms 1.9 % good      | 14 ms 1.2 % good       | 470/1800 (26 %) |                 5G | Wi-Fi datagrams | 640/1800 (36 %) |
+|  4  (3:00-4:00)   |         10 / 10 | 15 ms 1.8 % good      | 38 ms 3.6 % degraded   | 240/1800 (13 %) |                 5G | Wi-Fi datagrams | 207/1800 (12 %) |
+|  5  (4:00-5:00)   |         10 / 10 | 15 ms 2.1 % good      | 48 ms 4.7 % congested  | 411/1800 (23 %) |                 5G | Wi-Fi datagrams | 277/1800 (15 %) |
+|  6  (5:00-6:00)   |         10 / 10 | 15 ms 2.1 % good      | 10 ms 0.8 % good       | 691/1800 (38 %) |                 5G | Wi-Fi datagrams | 746/1800 (41 %) |
+|  7  (6:00-7:00)   |         10 / 10 | 16 ms 1.8 % good      | 10 ms 0.9 % good       | 683/1800 (38 %) |   5G 50s+Wi-Fi 10s |        switched | 488/1800 (27 %) |
+|  8  (7:00-8:00)   |         10 / 10 | 26 ms 3.1 % degraded  | 10 ms 0.9 % good       | 362/1800 (20 %) |   5G 10s+Wi-Fi 50s |        switched | 306/1800 (17 %) |
+|  9  (8:00-9:00)   |         10 / 10 | 51 ms 5.7 % congested | 10 ms 0.9 % good       |    0/1800 (0 %) |              Wi-Fi |    5G datagrams |   92/1800 (5 %) |
+| 10  (9:00-10:00)  |         10 / 10 | 38 ms 4.1 % good      | 10 ms 1.2 % good       | 396/1800 (22 %) |   5G 35s+Wi-Fi 25s |        switched | 387/1800 (22 %) |
+| 11  (10:00-11:00) |         10 / 10 | 15 ms 2.0 % good      | 10 ms 1.1 % good       | 740/1800 (41 %) |                 5G | Wi-Fi datagrams | 843/1800 (47 %) |
+| 12  (11:00-12:00) |         10 / 10 | 15 ms 2.2 % good      | 11 ms 1.0 % good       | 529/1800 (29 %) |                 5G | Wi-Fi datagrams | 711/1800 (40 %) |
+| 13  (12:00-13:00) |         10 / 10 | 24 ms 2.9 % degraded  | 29 ms 2.7 % degraded   | 243/1800 (14 %) |                 5G | Wi-Fi datagrams | 228/1800 (13 %) |
+| 14  (13:00-14:00) |         10 / 10 | 37 ms 4.2 % degraded  | 55 ms 5.5 % congested  |    2/1800 (0 %) |                 5G | Wi-Fi datagrams |    2/1800 (0 %) |
++-------------------+-----------------+-----------------------+------------------------+-----------------+--------------------+-----------------+-----------------+
+Made: /home/siddhartha/mininet-wifi-5g/congestion_results/congestion_congested.png
+Made: /home/siddhartha/mininet-wifi-5g/congestion_results/congestion_congested.mp4
+Made: /home/siddhartha/mininet-wifi-5g/congestion_results/congestion_lossy.png
+Made: /home/siddhartha/mininet-wifi-5g/congestion_results/congestion_lossy.mp4
+Made: /home/siddhartha/mininet-wifi-5g/congestion_results/congestion_degraded.png
+Made: /home/siddhartha/mininet-wifi-5g/congestion_results/congestion_degraded.mp4
+
+On the Mac:
+  scp 'siddhartha@192.168.252.4:~/mininet-wifi-5g/congestion_results/congestion_*' ~/Downloads/

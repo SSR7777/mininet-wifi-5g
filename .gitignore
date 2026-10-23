@@ -17,3 +17,5 @@ demo/
 *.mp4
 *.ts
 longvideo_results/
+congestion_results*/
+conditions_results/
