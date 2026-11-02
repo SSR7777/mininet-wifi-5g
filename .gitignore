@@ -17,5 +17,8 @@ demo/
 *.mp4
 *.ts
 longvideo_results/
-congestion_results*/
+congestion_results/
 conditions_results/
+moq_results/
+moq/moqpico
+moq/*.o

@@ -65,6 +65,8 @@ BASE = {"wifi": {"bw": 500.0, "delay": 10.0, "loss": 1.0},
 MAIN = "5g"                      # both paths good -> I frames on this path
 RANK = {"good": 0, "degraded": 1, "lossy": 2, "high delay": 2, "congested": 3, "down": 4}
 HERE = os.path.dirname(os.path.abspath(__file__))
+PART_NAME = "Part 8"              # moq_test.py (Part 9) reuses the tables and graphs with its own name
+FILE_PREFIX = "congestion"
 
 # Each scenario: 6 phases of equal length; per phase what happens to each path
 #   "bg" = background traffic high, "loss" = lossy, "deg" = getting worse, "deg2" = getting worse slowly
@@ -784,7 +786,7 @@ def show(base, scens=None):
         r0 = g[vs_[0]]
         num = sr._pnum
         frac = lambda r, a, b: f"{r[a]} / {r[b]}"
-        head = (f"PART 8 - {SCEN[scen]['title'].upper()}  ({float(r0['length_s']) / 60:.0f} min, measured every "
+        head = (f"{PART_NAME.upper()} - {SCEN[scen]['title'].upper()}  ({float(r0['length_s']) / 60:.0f} min, measured every "
                 f"{r0['window_s']} s, Td {r0['td_ms']} ms, TL {r0['tl_pct']} %, background {r0['bg_low']} % -> "
                 f"{r0['bg_high']} %)")
         rows = [["I frames go on", *["5G stream always" if v == "fixed" else "better path's stream" for v in vs_]],
@@ -905,7 +907,7 @@ def graph(od, scen, runs, args):
         for a_ in (ax[0], ax[1]):
             a_.grid(alpha=0.3)
             a_.legend(loc="upper right", fontsize=8)
-        fig.suptitle(f"Part 8 (no video) - {SCEN[scen]['title']}\nmeasured every {args.window:g} s; where the "
+        fig.suptitle(f"{PART_NAME} (no video) - {SCEN[scen]['title']}\nmeasured every {args.window:g} s; where the "
                      f"I frames would go (better path's stream)", fontsize=11)
         fig.tight_layout()
         out = f"{od}/conditions_{scen}.png"
@@ -927,10 +929,10 @@ def graph(od, scen, runs, args):
     ax[1].legend(loc="upper right", fontsize=8)
     for a_ in (ax[0], ax[1], ax[3]):
         a_.grid(alpha=0.3)
-    fig.suptitle(f"Part 8 - {SCEN[scen]['title']}\nmeasured every {args.window:g} s; I frames on the better "
+    fig.suptitle(f"{PART_NAME} - {SCEN[scen]['title']}\nmeasured every {args.window:g} s; I frames on the better "
                  f"path's stream, P/B frames on the worse path's datagrams", fontsize=11)
     fig.tight_layout()
-    out = f"{od}/congestion_{scen}.png"
+    out = f"{od}/{FILE_PREFIX}_{scen}.png"
     fig.savefig(out, dpi=120)
     plt.close(fig)
     return out
@@ -968,7 +970,7 @@ def video(od, scen, runs, args):
                     f"fontcolor=white:enable='between(t,{w['t']:.2f},{w['t'] + args.window - 0.01:.2f})'")
     with open(os.path.join(d, "_bars.txt"), "w") as fh:
         fh.write("pad=iw:ih+84:0:0:black," + ",".join(bars))
-    out = f"{od}/congestion_{scen}.mp4"
+    out = f"{od}/{FILE_PREFIX}_{scen}.mp4"
     r = subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", tmp, "-filter_script:v",
                         os.path.join(d, "_bars.txt"), "-c:v", "libx264", "-preset", "veryfast", "-crf", "24",
                         "-pix_fmt", "yuv420p", out], capture_output=True, text=True)

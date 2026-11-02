@@ -3,7 +3,7 @@
 A client (`sta1`) with two access paths, **Wi-Fi** and **emulated 5G**, to one server (`srv`), built with
 [Mininet-WiFi](https://github.com/intrig-unicamp/mininet-wifi). All network values are in `config.ini`.
 
-## The project in seven parts
+## The project in nine parts
 
 | Part | What it does | Main files |
 |---|---|---|
@@ -14,6 +14,8 @@ A client (`sta1`) with two access paths, **Wi-Fi** and **emulated 5G**, to one s
 | **5. I-frame aware sending** | Analyses the I, P and B frames (H.264 and HEVC), measures what one lost frame does, and sends the video over Wi-Fi only, 5G only and Wi-Fi + 5G: I frames as a reliable QUIC stream / P/B as datagrams, and I frames over 5G with P/B frames over Wi-Fi | `iframe_test.py`, `show_results.py` |
 | **6. Adaptive switching** | When the main path (5G or Wi-Fi) gets weak, only the I frames stay on its QUIC stream and the P/B frames move to the other path as datagrams; compared with no adaptation | `adaptive_test.py`, `show_results.py` |
 | **7. Long video, changing signal** | A 15-minute video in 20 s segments while 5G (up to 700 Mbit/s) and Wi-Fi (up to 500 Mbit/s) rise and fall: I frames on the better path's QUIC stream, P/B frames on the worse path's datagrams; compared with I always on 5G | `long_video_test.py`, `show_results.py --long` |
+| **8. Sending by measured network condition** | Measures delay and loss of both paths every 5 s, labels each path good / degraded / lossy / congested (Td 50 ms, TL 5 %), and puts the I frames on the better path's QUIC stream and P/B on the worse path's datagrams; congested, lossy and degraded scenarios | `congestion_test.py`, `probe.py`, `PART8_CONDITIONS.md` |
+| **9. MoQ (MoQtail) layer on picoquic** | A MoQ Transport layer (MOQT draft-16, the MoQtail version) written in C on picoquic: the video is a MoQ track, 1 group per GOP; I-frame objects on a subgroup stream of the better path's session, P/B objects as datagrams on the other; runs the Part 8 scenarios and works with the real MoQtail relay | `moq/`, `moq_test.py`, `PART9_MOQ.md` |
 
 ### Where to find each part (branches)
 

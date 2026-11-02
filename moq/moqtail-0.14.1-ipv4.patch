@@ -1,0 +1,37 @@
+diff --git a/apps/relay/src/main.rs b/apps/relay/src/main.rs
+index a2fe0f6..5278366 100644
+--- a/apps/relay/src/main.rs
++++ b/apps/relay/src/main.rs
+@@ -19,9 +19,10 @@ use server::Server;
+ #[tokio::main]
+ async fn main() -> Result<(), anyhow::Error> {
+   let mut server = Server::new();
+-  let _ = server
++  let r = server
+     .start()
+     .instrument(tracing::trace_span!("server"))
+     .await;
++  if let Err(e) = &r { eprintln!("relay error: {e:?}"); }
+   Ok(())
+ }
+diff --git a/apps/relay/src/server/config.rs b/apps/relay/src/server/config.rs
+index 09a98ac..f397b78 100644
+--- a/apps/relay/src/server/config.rs
++++ b/apps/relay/src/server/config.rs
+@@ -209,7 +209,15 @@ impl AppConfig {
+ /// `quinn::Endpoint::server`'s plain `UdpSocket::bind` leaves dual-stack to the OS
+ /// default, which isn't guaranteed across platforms, so this is done explicitly.
+ fn bind_dual_stack_udp_socket(port: u16) -> Result<UdpSocket> {
+-  let socket = Socket::new(Domain::IPV6, Type::DGRAM, None)?;
++  // IPv4-only hosts (IPv6 disabled): fall back to 0.0.0.0
++  let socket = match Socket::new(Domain::IPV6, Type::DGRAM, None) {
++    Ok(s) => s,
++    Err(_) => {
++      let s4 = UdpSocket::bind(("0.0.0.0", port))?;
++      s4.set_nonblocking(true)?;
++      return Ok(s4);
++    }
++  };
+   socket.set_only_v6(false)?;
+   let addr: SocketAddr = (Ipv6Addr::UNSPECIFIED, port).into();
+   socket.bind(&addr.into())?;
